@@ -33,7 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GEMINI_API_KEY = "AQ.Ab8RN6J8D88nsK5e2YGvALLmxcPQd8_NM94EflgchHXfmLCOaA"
+GEMINI_API_KEY = "AQ.Ab8RN6LtFWTDbOx8b-njVee6WpXodxk3ly-0GhzeIstj9QtpCw"
 router = APIRouter(prefix="/api/v1/dictionary", tags=["Dictionary & AI Translation"])
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
 
@@ -241,29 +241,40 @@ async def check_essay(data: EssayRequest):
     """
 
     payload = {
-        "contents": [{"parts": [{"text": prompt}]}]
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "response_mime_type": "application/json"
+        }
     }
 
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(GEMINI_URL, json=payload, timeout=40.0)
+            import asyncio
+            response = None
+            for attempt in range(3):
+                response = await client.post(GEMINI_URL, json=payload, timeout=40.0)
+                if response.status_code == 200:
+                    break
+                elif response.status_code == 503:
+                    print(f"503 қате, {attempt+1}-қайталау...")
+                    await asyncio.sleep(3)
+                else:
+                    print(f"Google API Error Content: {response.text}")
+                    raise HTTPException(status_code=500, detail="Gemini ИИ сервері жауап бермеді.")
             
             if response.status_code != 200:
-                print(f"Google API Error Content: {response.text}")
                 raise HTTPException(status_code=500, detail="Gemini ИИ сервері жауап бермеді.")
             
             resp_data = response.json()
             raw_text = resp_data['candidates'][0]['content']['parts'][0]['text']
-            
-            match = re.search(r'\{.*\}', raw_text, re.DOTALL)
-            if match:
-                clean_text = match.group(0)
-            else:
-                clean_text = raw_text.replace("```json", "").replace("```", "").strip()
+            try:
+                result_json = json.loads(raw_text)
+                return result_json
+            except json.JSONDecodeError as json_err:
+                print(f"JSON Parse Error: {json_err}")
+                print(f"Raw Gemini Output:\n{raw_text}")
+                raise HTTPException(status_code=500, detail="ИИ қайтарған жауап форматы қате.")
 
-            result_json = json.loads(clean_text)
-            return result_json
-            
         except Exception as e:
             print(f"Толық қате сипаттамасы (Backend): {e}")
             raise HTTPException(status_code=500, detail="Мәтінді ИИ арқылы өңдеу сәтсіз аяқталды.")
