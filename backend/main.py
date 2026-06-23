@@ -5,6 +5,7 @@ import httpx
 import json
 import re
 import os
+import logging
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from typing import Dict, List
@@ -21,6 +22,8 @@ from models import User, ReadingMaterial, ListeningMaterial, Question, WritingTa
 from fastapi import APIRouter, Depends, HTTPException, status
 from dotenv import load_dotenv
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Q-prep API",
@@ -36,7 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 load_dotenv()
-api_key = os.getenv= ("GEMINI_API_KEY")
+api_key = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 router = APIRouter(prefix="/api/v1/dictionary", tags=["Dictionary & AI Translation"])
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
