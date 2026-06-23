@@ -43,7 +43,7 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 router = APIRouter(prefix="/api/v1/dictionary", tags=["Dictionary & AI Translation"])
-GEMINI URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
 
 class EssayRequest(BaseModel):
     text: str
