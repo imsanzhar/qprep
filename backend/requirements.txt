@@ -4,3 +4,8 @@ sqlalchemy==2.0.31
 aiosqlite==0.20.0
 pydantic==2.7.4
 pydantic-settings==2.3.4
+PyJWT
+bcrypt
+httpx
+google-generativeai
+python-dotenv
