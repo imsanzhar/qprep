@@ -32,8 +32,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-GEMINI_API_KEY = "AQ.Ab8RN6LtFWTDbOx8b-njVee6WpXodxk3ly-0GhzeIstj9QtpCw"
+load_dotenv()
+api_key = os.getenv= ("GEMINI_API_KEY")
+genai.configure(api_key=api_key)
 router = APIRouter(prefix="/api/v1/dictionary", tags=["Dictionary & AI Translation"])
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
 
