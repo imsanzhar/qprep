@@ -17,6 +17,7 @@ from database import engine, Base, get_db
 from app.routers import speaking
 from models import User, ReadingMaterial, ListeningMaterial, Question, WritingTask, SpeakingTask, TestResult, UserWord
 from fastapi import APIRouter, Depends, HTTPException, status
+from dotenv import load_dotenv
 
 
 app = FastAPI(
