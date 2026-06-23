@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="kk" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="assets/images/icon.png">
+    <title>Жеке кабинет | QAZTEST</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-top: 24px; }
+        .card { background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        
+        .profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .avatar-upload { position: relative; cursor: pointer; margin-bottom: 15px; }
+        .avatar-preview { width: 120px; height: 120px; border-radius: 50%; background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; overflow: hidden; border: 4px solid var(--surface-secondary); }
+        .avatar-preview img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .form-group { margin-bottom: 16px; text-align: left; width: 100%; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 8px; font-weight: 500; color: var(--text-main);}
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-main); color: var(--text-main); font-family: inherit; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: 600; font-size: 16px; transition: 0.2s; }
+        .btn-save:hover { opacity: 0.9; }
+
+        .streak-container { display: flex; gap: 15px; margin-bottom: 24px; }
+        .streak-box { background: var(--surface-secondary); padding: 20px; border-radius: 12px; flex: 1; text-align: center; border: 1px solid var(--border); }
+        .streak-val { font-size: 28px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+
+        .heatmap-wrapper { overflow-x: auto; padding: 10px 0; }
+        .heatmap { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; gap: 4px; }
+        .day-cell { width: 14px; height: 14px; border-radius: 3px; background-color: var(--border); transition: 0.2s; }
+        .day-cell:hover { transform: scale(1.2); }
+        
+        .day-cell[data-level="1"] { background-color: #9be9a8; }
+        .day-cell[data-level="2"] { background-color: #40c463; }
+        .day-cell[data-level="3"] { background-color: #30a14e; }
+        .day-cell[data-level="4"] { background-color: #216e39; }
+        [data-theme="dark"] .day-cell[data-level="1"] { background-color: #0e4429; }
+        [data-theme="dark"] .day-cell[data-level="2"] { background-color: #006d32; }
+        [data-theme="dark"] .day-cell[data-level="3"] { background-color: #26a641; }
+        [data-theme="dark"] .day-cell[data-level="4"] { background-color: #39d353; }
+
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .chart-box { background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border); height: 250px;}
+
+        @media (max-width: 900px) { .dashboard-grid, .charts-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px 10px 16px; text-align: center; width: 100%; box-sizing: border-box; height: auto; min-height: 120px; border-bottom: 1px solid var(--border);">
+            <img src="assets/images/icon.png" alt="Q-prep" style="width: 56px; height: 64px; object-fit: contain; flex-shrink: 0;">
+            <span style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-muted); line-height: 1.3;">
+                ҚАЗТЕСТ-КЕ ДАЙЫНДАЙТЫН ИНТЕРАКТИВТІ ПЛАТФОРМА
+            </span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a href="index.html">Басты бет</a></li>
+            <li class="sidebar-item"><a href="reading.html">Оқылым</a></li>
+            <li class="sidebar-item"><a href="listening.html">Тыңдалым</a></li>
+            <li class="sidebar-item"><a href="writing.html">Жазылым</a></li>
+            <li class="sidebar-item"><a href="speaking.html">Aйтылым</a></li>
+            <li class="sidebar-item"><a href="mock.html">Кешенді тестілеу</a></li>
+            <li class="sidebar-item"><a href="vocabulary.html">Сөздік қоры</a></li>
+        </ul>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="header">
+            <button class="theme-toggle-btn" id="themeToggle">
+                <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.22" x2="5.64" y2="17.84"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            </button>
+            <div class="user-profile" id="userProfileBtn" style="position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <div class="avatar" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; overflow: hidden;">
+                    <span id="avatar-letter">А</span>
+                    <img id="header-avatar-img" src="" alt="" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                </div>
+                <span id="user-display-name" style="font-weight: 500;">Пайдаланушы</span>
+                
+                <div id="profileDropdown" class="dropdown-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px; z-index: 100;">
+                    <ul style="list-style: none; padding: 10px 0; margin: 0;">
+                        <li><a href="profile.html" style="display: block; padding: 10px 20px; color: var(--primary); text-decoration: none;">👤 Жеке кабинет</a></li>
+                        <hr style="border-top: 1px solid var(--border); margin: 5px 0;">
+                        <li><a href="#" onclick="logout()" style="display: block; padding: 10px 20px; color: #dc3545; text-decoration: none;">🚪 Шығу</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-container">
+            <h2 style="margin-bottom: 5px; color: var(--text-main);">👤 Профиль және Статистика</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Өз мәліметтеріңізді және оқу прогресіңізді бақылаңыз.</p>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="profile-header">
+                        <div class="avatar-upload" onclick="document.getElementById('avatar-input').click()">
+                            <div class="avatar-preview">
+                                <span id="main-avatar-letter">П</span>
+                                <img id="avatarImage" src="" alt="Avatar">
+                            </div>
+                            <span style="font-size: 13px; color: var(--primary); font-weight: 500; margin-top: 10px; display: block;">Суретті өзгерту</span>
+                        </div>
+                        <input type="file" id="avatar-input" accept="image/*" style="display: none;" onchange="updateAvatar(event)">
+
+                        <div class="form-group">
+                            <label>Аты</label>
+                            <input type="text" id="profileFirstName" placeholder="Атыңыз">
+                        </div>
+                        <div class="form-group">
+                            <label>Тегі</label>
+                            <input type="text" id="profileLastName" placeholder="Тегіңіз">
+                        </div>
+                        <div class="form-group">
+                            <label>Мақсатты деңгей</label>
+                            <select id="profileTarget">
+                                <option value="A2">A2 - Қарапайым</option>
+                                <option value="B1">B1 - Орташа</option>
+                                <option value="B2">B2 - Орташадан жоғары</option>
+                                <option value="C1">C1 - Жоғары</option>
+                            </select>
+                        </div>
+                        <button class="btn-save" onclick="saveProfile()">Сақтау</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div class="streak-container">
+                            <div class="streak-box">
+                                <div style="font-size: 14px; color: var(--text-muted);">Қазіргі стрик</div>
+                                <div class="streak-val" style="color: #ff9800;"><span id="currStreak">0</span> 🔥</div>
+                            </div>
+                            <div class="streak-box">
+                                <div style="font-size: 14px; color: var(--text-muted);">Рекорд (Max)</div>
+                                <div class="streak-val" style="color: var(--primary);"><span id="maxStreak">0</span> 🏆</div>
+                            </div>
+                            <div class="streak-box">
+                                <div style="font-size: 14px; color: var(--text-muted);">Жалпы уақыт</div>
+                                <div class="streak-val" style="color: #28a745;"><span id="totalMins">0</span> ⏱️</div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-top: 0; color: var(--text-main);">Белсенділік күнтізбесі</h3>
+                        <p style="font-size: 13px; color: var(--text-muted);">Күніне 15 минуттан артық дайындалу — стрик болып саналады.</p>
+                        <div class="heatmap-wrapper">
+                            <div class="heatmap" id="activityHeatmap"></div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom: 10px; color: var(--text-main);">Прогресс графиктері</h3>
+                    <div class="charts-grid">
+                        <div class="chart-box"><canvas id="mockChart"></canvas></div>
+                        <div class="chart-box"><canvas id="listenChart"></canvas></div>
+                        <div class="chart-box"><canvas id="readChart"></canvas></div>
+                        <div class="chart-box"><canvas id="writeChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        if(themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                let theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+            });
+        }
+        
+        const profileBtn = document.getElementById('userProfileBtn');
+        const dropdown = document.getElementById('profileDropdown');
+        profileBtn.addEventListener('click', (e) => {
+            if(e.target.closest('#profileDropdown')) return; 
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+        document.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target)) dropdown.style.display = 'none';
+        });
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = 'login.html';
+        }
+        function updateAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    document.getElementById('avatarImage').src = base64;
+                    document.getElementById('avatarImage').style.display = 'block';
+                    document.getElementById('main-avatar-letter').style.display = 'none';
+                    
+                    const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+                    profile.avatar = base64;
+                    localStorage.setItem('user_profile', JSON.stringify(profile));
+                }
+                reader.readAsDataURL(file);
+            }
+            const headerImg = document.getElementById('header-avatar-img');
+            if (headerImg) {
+                headerImg.src = base64;
+                headerImg.style.display = 'block';
+                const letterEl = document.getElementById('avatar-letter');
+                if (letterEl) letterEl.style.display = 'none';
+            }
+        }
+        function saveProfile() {
+            const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+            profile.firstName = document.getElementById('profileFirstName').value;
+            profile.lastName = document.getElementById('profileLastName').value;
+            profile.target = document.getElementById('profileTarget').value;
+            localStorage.setItem('user_profile', JSON.stringify(profile));
+            alert("Профиль сәтті сақталды!");
+
+            if (profile.firstName) {
+                document.getElementById('user-display-name').innerText = profile.firstName;
+                document.getElementById('avatar-letter').innerText = profile.firstName.charAt(0).toUpperCase();
+            }
+
+            // +++ Обновить фото в хедере сразу +++
+            const headerImg = document.getElementById('header-avatar-img');
+            const headerLetter = document.getElementById('avatar-letter');
+            if (headerImg && profile.avatar) {
+                headerImg.src = profile.avatar;
+                headerImg.style.display = 'block';
+                if (headerLetter) headerLetter.style.display = 'none';
+            }
+        }
+        function loadProfile() {
+            const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+            if (profile.firstName) {
+                document.getElementById('profileFirstName').value = profile.firstName;
+                document.getElementById('user-display-name').innerText = profile.firstName;
+                document.getElementById('avatar-letter').innerText = profile.firstName.charAt(0).toUpperCase();
+                document.getElementById('main-avatar-letter').innerText = profile.firstName.charAt(0).toUpperCase();
+            }
+            if (profile.lastName) document.getElementById('profileLastName').value = profile.lastName;
+            if (profile.target) document.getElementById('profileTarget').value = profile.target;
+            
+            // Большой аватар (в форме профиля)
+            if (profile.avatar) {
+                document.getElementById('avatarImage').src = profile.avatar;
+                document.getElementById('avatarImage').style.display = 'block';
+                document.getElementById('main-avatar-letter').style.display = 'none';
+            }
+
+            // +++ Маленький аватар в хедере +++
+            const headerImg = document.getElementById('header-avatar-img');
+            const headerLetter = document.getElementById('avatar-letter');
+            if (headerImg) {
+                if (profile.avatar) {
+                    headerImg.src = profile.avatar;
+                    headerImg.style.display = 'block';
+                    if (headerLetter) headerLetter.style.display = 'none';
+                } else {
+                    headerImg.style.display = 'none';
+                    if (headerLetter) headerLetter.style.display = '';
+                }
+            }
+        }
+        function renderHeatmap() {
+            const activityLog = JSON.parse(localStorage.getItem('study_activity')) || {};
+            const container = document.getElementById('activityHeatmap');
+            
+            const today = new Date();
+            const startDate = new Date(today);
+            startDate.setDate(today.getDate() - 364);
+
+            let total = 0, current = 0, max = 0, temp = 0;
+
+            for (let i = 0; i <= 364; i++) {
+                const d = new Date(startDate);
+                d.setDate(startDate.getDate() + i);
+                const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                
+                const mins = activityLog[dateStr] || 0;
+                total += mins;
+
+                if (mins >= 1) {
+                    temp++;
+                    if (temp > max) max = temp;
+                } else {
+                    temp = 0;
+                }
+
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                let lvl = 0;
+                if (mins >= 60) lvl = 4;
+                else if (mins >= 45) lvl = 3;
+                else if (mins >= 30) lvl = 2;
+                else if (mins >= 1) lvl = 1;
+
+                cell.setAttribute('data-level', lvl);
+                cell.title = `${dateStr}: ${mins} минут`;
+                container.appendChild(cell);
+            }
+
+            document.getElementById('currStreak').innerText = temp;
+            document.getElementById('maxStreak').innerText = max;
+            document.getElementById('totalMins').innerText = total;
+        }
+
+        function renderCharts() {
+        const mockHist = JSON.parse(localStorage.getItem('mock_test_history')) || [];
+        const mockChrono = [...mockHist].reverse(); 
+        const modHist = JSON.parse(localStorage.getItem('module_history')) || [];
+        const listenData = modHist.filter(x => x.type === 'listening');
+        const readData = modHist.filter(x => x.type === 'reading');
+        const writeData = modHist.filter(x => x.type === 'writing');
+        Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--text-main') || '#333';
+        const commonOpts = { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } }, 
+            scales: { y: { beginAtZero: true } } 
+        };
+        const mockScores = mockChrono.map(h => {
+            if (typeof h.score === 'string') {
+                return parseInt(h.score.split('/')[0]) || 0;
+            }
+            return parseInt(h.score) || 0;
+        });
+        new Chart(document.getElementById('mockChart'), {
+            type: 'bar',
+            data: {
+                labels: mockChrono.length ? mockChrono.map((_, i) => `Тест ${i+1}`) : ['Әлі тест жоқ'],
+                datasets: [{ 
+                    data: mockScores.length ? mockScores : [0], 
+                    backgroundColor: '#9c27b0', 
+                    borderRadius: 4 
+                }]
+            },
+            options: { ...commonOpts, plugins: { title: { display: true, text: '📊 Кешенді Mock-тест (Макс. 110)' } } }
+        });
+        new Chart(document.getElementById('listenChart'), {
+            type: 'line',
+            data: {
+                labels: listenData.length ? listenData.map((_, i) => `Тапсырма ${i+1}`) : ['Дерек жоқ'],
+                datasets: [{ 
+                    data: listenData.length ? listenData.map(h => parseInt(h.score) || 0) : [0], 
+                    borderColor: '#ff9800', 
+                    tension: 0.3 
+                }]
+            },
+            options: { ...commonOpts, plugins: { title: { display: true, text: '🎧 Тыңдалым (Жеке)' } } }
+        });
+        new Chart(document.getElementById('readChart'), {
+            type: 'line',
+            data: {
+                labels: readData.length ? readData.map((_, i) => `Тапсырма ${i+1}`) : ['Дерек жоқ'],
+                datasets: [{ 
+                    data: readData.length ? readData.map(h => parseInt(h.score) || 0) : [0], 
+                    borderColor: '#007bff', 
+                    tension: 0.3 
+                }]
+            },
+            options: { ...commonOpts, plugins: { title: { display: true, text: '📖 Оқылым (Жеке)' } } }
+        });
+        new Chart(document.getElementById('writeChart'), {
+            type: 'line',
+            data: {
+                labels: writeData.length ? writeData.map((_, i) => `Тапсырма ${i+1}`) : ['Дерек жоқ'],
+                datasets: [{ 
+                    data: writeData.length ? writeData.map(h => parseInt(h.score) || 0) : [0], 
+                    borderColor: '#28a745', 
+                    tension: 0.3 
+                }]
+            },
+            options: { ...commonOpts, plugins: { title: { display: true, text: '✍️ Жазылым (Жеке)' } } }
+        });
+    }
+        window.onload = () => {
+            loadProfile();
+            renderHeatmap();
+            renderCharts();
+        };
+    </script>
+</body>
+</html>

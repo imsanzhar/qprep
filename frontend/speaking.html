@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="kk" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="assets/images/icon.png">
+    <title>Айтылым | Q-prep</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .simulator-container {
+            display: none;
+            gap: 24px;
+            height: calc(100vh - 180px);
+        }
+        .pane {
+            flex: 1;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .speaking-status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface-secondary);
+            border: 1px solid var(--border);
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .status-msg {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* --- МИКРОФОН ЖӘНЕ ОРТАЛЫҚ АЙМАҚ --- */
+        .mic-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px 20px;
+            background-color: var(--surface);
+            transition: border-color 0.2s ease;
+        }
+        
+        .mic-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: none;
+            background: #dc3545;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+        .mic-btn.recording {
+            background: #28a745;
+            box-shadow: 0 0 25px rgba(40,167,69,0.6);
+            transform: scale(1.05);
+        }
+        .mic-btn:hover {
+            transform: scale(1.05);
+        }
+
+        #audioPlayback {
+            width: 100%;
+            max-width: 320px;
+            margin-top: 10px;
+            display: none;
+            border-radius: 8px;
+        }
+
+        .useful-phrases {
+            margin-top: 24px;
+            padding: 16px;
+            background-color: var(--surface-secondary);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        .useful-phrases ul {
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+        .useful-phrases li {
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px 10px 16px; text-align: center; width: 100%; box-sizing: border-box; height: auto; min-height: 120px; border-bottom: 1px solid var(--border);">
+            <img src="assets/images/icon.png" alt="Q-prep" style="width: 56px; height: 64px; object-fit: contain; flex-shrink: 0;">
+            <span style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-muted); line-height: 1.3;">
+                ҚАЗТЕСТ-КЕ ДАЙЫНДАЙТЫН ИНТЕРАКТИВТІ ПЛАТФОРМА
+            </span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a href="index.html"><span>Басты бет</span></a></li>
+            <li class="sidebar-item"><a href="reading.html"><span>Оқылым</span></a></li>
+            <li class="sidebar-item"><a href="listening.html"><span>Тыңдалым</span></a></li>
+            <li class="sidebar-item"><a href="writing.html"><span>Жазылым</span></a></li>
+            <li class="sidebar-item active"><a href="speaking.html"><span>Aйтылым</span></a></li>
+            <li class="sidebar-item"><a href="mock.html"><span>Кешенді тестілеу</span></a></li>
+            <li class="sidebar-item"><a href="vocabulary.html">Сөздік қоры</a></li>
+        </ul>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="header">
+            <button class="theme-toggle-btn" id="themeToggle"><svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.22" x2="5.64" y2="17.84"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></button>
+            <div class="user-profile" id="userProfileBtn" style="position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <div class="avatar" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; overflow: hidden;">
+                    <span id="avatar-letter">А</span>
+                    <img id="header-avatar-img" src="" alt="" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                </div>
+                <span id="user-display-name" style="font-weight: 500;">Пайдаланушы</span>
+                
+                <div id="profileDropdown" class="dropdown-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px; z-index: 100;">
+                    <ul style="list-style: none; padding: 10px 0; margin: 0;">
+                        <li>
+                            <a href="profile.html" style="display: block; padding: 10px 20px; color: var(--text-main); text-decoration: none; transition: 0.2s;">👤 Жеке кабинет</a>
+                        </li>
+                        <hr style="border-top: 1px solid var(--border); margin: 5px 0;">
+                        <li>
+                            <a href="#" onclick="logout()" style="display: block; padding: 10px 20px; color: #dc3545; text-decoration: none; transition: 0.2s;">🚪 Шығу</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-container">
+            
+            <div id="materialsScreen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="color: var(--primary);">Айтылым тапсырмалары</h2>
+                </div>
+                <div class="modules-grid" id="speakingList">
+                    <!-- Карталар осы жерге mockQuestions-тан жүктеледі -->
+                </div>
+            </div>
+
+            <div id="simulatorScreen" class="simulator-container">
+                <div class="pane">
+                    <button class="btn btn-secondary" style="margin-bottom: 20px; align-self: flex-start;" onclick="closeSimulator()">← Артқа қайту</button>
+                    <h3 id="taskTitle" style="color: var(--primary); margin-bottom: 16px;"></h3>
+                    
+                    <div id="taskDescription" style="line-height: 1.6; color: var(--text-main); margin-bottom: 16px;"></div>
+
+                    <div class="useful-phrases">
+                        <strong style="color: var(--text-main);">Қолдануға пайдалы тіркестер:</strong>
+                        <ul>
+                            <li>Біріншіден, бұл мәселе...</li>
+                            <li>Өз тәжірибемнен айтатын болсам...</li>
+                            <li>Қорыта айтқанда, бұл үрдіс...</li>
+                            <li>Сонымен қатар, назар аударатын жайт...</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="pane">
+                    <div class="speaking-status-bar">
+                        <div style="color: var(--text-muted);">Режим: Аудио жазу</div>
+                        <div id="status" class="status-msg">Микрофонды қосу үшін түймені басыңыз</div>
+                    </div>
+
+                    <div class="mic-zone">
+                        <button class="mic-btn" id="micBtn">🎤</button>
+                        <audio id="audioPlayback" controls></audio>
+                        <button type="button" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px; margin-top: 20px; display: none;" id="sendBtn">Жауапты жіберу</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/v1";
+        let mediaRecorder;
+        let audioChunks = [];
+        let currentTaskId = null;
+        const token = localStorage.getItem('access_token');
+        if (!token) window.location.href = 'login.html';
+        function applyHeaderProfile() {
+            const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+            const nameEl = document.getElementById('user-display-name');
+            const letterEl = document.getElementById('avatar-letter');
+            const imgEl = document.getElementById('header-avatar-img');
+            if (nameEl && profile.firstName) nameEl.innerText = profile.firstName;
+            if (letterEl && profile.firstName) letterEl.innerText = profile.firstName.charAt(0).toUpperCase();
+            if (imgEl) {
+                if (profile.avatar) {
+                    imgEl.src = profile.avatar;
+                    imgEl.style.display = 'block';
+                    if (letterEl) letterEl.style.display = 'none';
+                } else {
+                    imgEl.style.display = 'none';
+                    if (letterEl) letterEl.style.display = '';
+                }
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+                    const apiName = result.data.full_name;
+                    if (!profile.firstName && apiName) {
+                        profile.firstName = apiName.split(' ')[0];
+                        localStorage.setItem('user_profile', JSON.stringify(profile));
+                    }
+                    document.getElementById('welcome-name') && (document.getElementById('welcome-name').innerText = profile.firstName || apiName);
+                    applyHeaderProfile();
+                }
+            } catch (error) {
+                console.error('Профиль қатесі:', error);
+                applyHeaderProfile();
+            }
+        }
+        function logout() { 
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+        const mockQuestions = [
+        {
+            "id": 1,
+            "title": "Өзім туралы және менің ортам",
+            "level": "A1",
+            "description": "Өзіңіз туралы қысқаша мәлімет беріңіз. Есіміңіз, жасыңыз, тұратын жеріңіз және айналысатын ісіңіз туралы баяндаңыз.",
+            "questions": [
+                "Есіміңіз кім?",
+                "Жасыңыз нешеде?",
+                "Қай елде тұрасыз?",
+                "Қай қаладансыз?",
+                "Сүйікті ісіңіз қандай?",
+                "Қандай тілдерді білесіз?",
+                "Күнделікті не істейсіз?",
+                "Достарыңыз көп пе?",
+                "Сүйікті түсіңіз қандай?",
+                "Қайда оқисыз немесе жұмыс істейсіз?",
+                "Сүйікті жануарыңыз бар ма?",
+                "Бос уақытта не істегенді ұнатасыз?",
+                "Қандай музыка тыңдайсыз?",
+                "Бүгін ауа райы қандай?",
+                "Көңіл күйіңіз қалай?"
+            ]
+        },
+        {
+            "id": 2,
+            "title": "Менің отбасым",
+            "level": "A1",
+            "description": "Отбасыңыз туралы баяндаңыз. Отбасы мүшелерінің мамандықтары мен олардың қызығушылықтарына тоқталыңыз.",
+            "questions": [
+                "Отбасыңызда неше адам бар?",
+                "Әкеңіздің есімі кім?",
+                "Анаңыз қайда жұмыс істейді?",
+                "Бауырларыңыз бар ма?",
+                "Отбасылық дәстүрлеріңіз қандай?",
+                "Демалыс күндерін қалай өткізесіздер?",
+                "Үйде кім дәмді тамақ пісіреді?",
+                "Отбасыңызбен бірге қайда барғанды ұнатасыз?",
+                "Ата-анаңыздың мамандығы қандай?",
+                "Үй шаруасына қалай көмектесесіз?",
+                "Отбасы мүшелерінің қызығушылықтары қандай?",
+                "Бірге түскен суреттеріңіз көп пе?",
+                "Отбасыңызда ең үлкені кім?",
+                "Ең кішісі кім?",
+                "Отбасыңыз сіз үшін неліктен маңызды?"
+            ]
+        },
+        {
+            "id": 3,
+            "title": "Менің бос уақытым мен хоббиім",
+            "level": "A1",
+            "description": "Бос уақытыңызды қалай өткізетініңізді айтыңыз. Қандай хоббиіңіз бар екенін және оның сізге несімен ұнайтынын сипаттаңыз.",
+            "questions": [
+                "Бос уақытыңыз көп пе?",
+                "Хоббиіңіз қандай?",
+                "Спортпен айналысасыз ба?",
+                "Компьютерлік ойындар ойнайсыз ба?",
+                "Киноға жиі барасыз ба?",
+                "Бос уақытта кітап оқисыз ба?",
+                "Достарыңызбен қайда кездесесіз?",
+                "Табиғат аясында демалғанды ұнатасыз ба?",
+                "Сурет сала аласыз ба?",
+                "Қандай аспапта ойнай аласыз?",
+                "Бос уақытта жаңа нәрсе үйренесіз бе?",
+                "Кешкісін не істейсіз?",
+                "Теледидар көресіз бе?",
+                "Саябақта серуендеуді ұнатасыз ба?",
+                "Бос уақытты жалғыз өткізген ұнай ма, әлде достармен бе?"
+            ]
+        },
+        {
+            "id": 4,
+            "title": "Менің сүйікті тағамым",
+            "level": "A2",
+            "description": "Өзіңізге ұнайтын тағамдар туралы әңгімелеңіз. Олардың қалай дайындалатынын және пайдалы тұстарын сипаттаңыз.",
+            "questions": [
+                "Сүйікті тағамыңыз қандай?",
+                "Ол қалай дайындалады?",
+                "Ұлттық тағамдарды ұнатасыз ба?",
+                "Күніне неше рет тамақтанасыз?",
+                "Таңғы асқа не жейсіз?",
+                "Өзіңіз тамақ пісіре аласыз ба?",
+                "Тәтті тағамдарды ұнатасыз ба?",
+                "Фалтфуд туралы ойыңыз қандай?",
+                "Қандай сусындарды жиі ішесіз?",
+                "Сүйікті жемісіңіз қандай?",
+                "Көкөністерді жиі жейсіз бе?",
+                "Мейрамханаларға жиі барасыз ба?",
+                "Анаңыздың ең дәмді тағамы қандай?",
+                "Шетелдік тағамдардан не ұнайды?",
+                "Пайдалы тағам дегенді қалай түсінесіз?"
+            ]
+        },
+        {
+            "id": 5,
+            "title": "Біздің қала және оның ерекшеліктері",
+            "level": "A2",
+            "description": "Өзіңіз тұратын қала немесе ауыл туралы баяндаңыз. Ондағы көрікті жерлер мен ерекше сипаттарды атап өтіңіз.",
+            "questions": [
+                "Қай қалада немесе ауылда тұрасыз?",
+                "Қалаңыз үлкен бе?",
+                "Онда қандай көрікті жерлер бар?",
+                "Қалаңыздағы ауа райы қандай?",
+                "Ең сүйікті саябағыңыз қандай?",
+                "Қалада көлік кептелісі жиі бола ма?",
+                "Қалаңыздың тарихы туралы не білесіз?",
+                "Мұнда қандай мұражайлар бар?",
+                "Қалаңызда не өзгерткіңіз келеді?",
+                "Онда тұратын адамдар қандай?",
+                "Қалаңызда спорт кешендері бар ма?",
+                "Жастар уақытты қайда өткізеді?",
+                "Қалаңыздың экологиясы қандай?",
+                "Туристерге қай жерді көруді ұсынасыз?",
+                "Болашақта осы қалада қалғыңыз келе ве?"
+            ]
+        },
+        {
+            "id": 6,
+            "title": "Менің мектебім және оқу өмірім",
+            "level": "A2",
+            "description": "Оқитын мектебіңіз немесе оқу орныңыз туралы айтыңыз. Ғимараттың сипаты мен өзіңізге ұнайтын пәндеріңізді жеткізіңіз.",
+            "questions": [
+                "Қай мектепте оқисыз?",
+                "Мектебіңіз неше қабатты?",
+                "Сыныбыңызда неше оқушы бар?",
+                "Сүйікті пәніңіз қандай?",
+                "Ең қатал мұғалім кім?",
+                "Мектепте қандай үйірмелер бар?",
+                "Мектеп формасы сізге ұнай ма?",
+                "Сынып жетекшіңіз кім?",
+                "Мектепте қандай іс-шаралар өтеді?",
+                "Мектеп асханасынан не сатып аласыз?",
+                "Сабақ нешеде басталады?",
+                "Үй тапсырмасын орындауға қанша уақыт кетеді?",
+                "Мектептегі ең қызықты күн қайсы?",
+                "Достарыңызбен үзілісте не істейсіздер?",
+                "Мектепті болашақта сағынасыз ба?"
+            ]
+        },
+        {
+            "id": 7,
+            "title": "Салауатты өмір салтын қалыптастыру",
+            "level": "B1",
+            "description": "Денсаулықты сақтаудың маңыздылығын түсіндіріңіз. Дұрыс тамақтану мен спортпен айналысудың адамға әсерін талқылаңыз.",
+            "questions": [
+                "Салауатты өмір салты дегенді қалай түсінесіз?",
+                "Дұрыс тамақтанудың ережелері қандай?",
+                "Күнделікті спортпен айналысу міндетті ме?",
+                "Зиянды әдеттерге не жатады?",
+                "Күн тәртібін сақтау не үшін керек?",
+                "Күніне неше сағат ұйықтау қажет?",
+                "Таза су ішудің денсаулыққа пайдасы қандай?",
+                "Күйзелістен қалай арылуға болады?",
+                "Дәрігерге қаншалықты жиі қараласыз?",
+                "Фастфудтан бас тарту оңай ма?",
+                "Таза ауада серуендеудің маңызы қандай?",
+                "Спорттың қай түрі денсаулыққа ең пайдалы?",
+                "Иммунитетті қалай көтеруге болады?",
+                "Денсаулықты сақтаудағы ең басты фактор не?",
+                "Қоғамда бұқаралық спорт танымал ма?"
+            ]
+        },
+        {
+            "id": 8,
+            "title": "Саяхат және туризм мәдениеті",
+            "level": "B1",
+            "description": "Саяхаттаудың адам өміріне тигізер әсері туралы айтыңыз. Өзіңіз болған немесе болашақта барғыңыз келетін жерлерді сипаттаңыз.",
+            "questions": [
+                "Саяхаттағанды ұнатасыз ба?",
+                "Өзге елдердің мәдениетін білу неліктен қызықты?",
+                "Саяхатқа шығарда қандай дайындық керек?",
+                "Көліктің қай түрімен саяхаттаған ыңғайлы?",
+                "Қазақстанның қай өңірлерінде болдыңыз?",
+                "Шетелге шығып көрдіңіз бе?",
+                "Болашақта қай елге барғыңыз келеді?",
+                "Саяхат адамның дүниетанымын қалай өзгертеді?",
+                "Жаяу туризм туралы не ойлайсыз?",
+                "Саяхат кезінде тіл білу қаншалықты маңызды?",
+                "Ең ерекше көрген жеріңіз қайсы?",
+                "Тарихи орындарға бару ұнай ма?",
+                "Саяхатқа кіммен бірге шыққан жақсы?",
+                "Экотуризм деген не?",
+                "Саяхат сізге қандай шабыт береді?"
+            ]
+        },
+        {
+            "id": 9,
+            "title": "Интернет және заманауи қоғам",
+            "level": "B1",
+            "description": "Интернеттің заманауи өмірдегі рөлін талқылаңыз. Оның пайдалы жақтары мен қауіпті тұстарын саралаңыз.",
+            "questions": [
+                "Күніне интернетте қанша уақыт өткізесіз?",
+                "Интернетті негізінен не үшін қолданасыз?",
+                "Әлеуметтік желілердің пайдасы қандай?",
+                "Интернетке тәуелділік дегенді қалай түсінесіз?",
+                "Онлайн білім алудың артықшылықтары қандай?",
+                "Интернеттегі киберқауіпсіздік ережелері қандай?",
+                "Фейк ақпаратты қалай ажыратуға болады?",
+                "Интернетсіз өмірді елестете аласыз ба?",
+                "Желідегі балалар қауіпсіздігін қалай қамтамасыз етеді?",
+                "Интернет арқылы дос табу мүмкін бе?",
+                "Онлайн сатып алудың ыңғайлылығы неде?",
+                "Интернет уақытты үнемдей ме, әлде ысырап ете ме?",
+                "Кибербуллинг деген не және онымен қалай күреседі?",
+                "Дамыған елдерде интернет сапасы қандай?",
+                "Интернеттің болашағын қалай көресіз?"
+            ]
+        },
+        {
+            "id": 10,
+            "title": "Жасанды интеллект және болашақ",
+            "level": "B2",
+            "description": "Жасанды интеллект технологияларының дамуы мен оның қоғамға әсерін талдаңыз. Оның мамандықтарға ықпалы қандай болмақ?",
+            "questions": [
+                "Жасанды интеллект дегеніміз не?",
+                "Қазіргі уақытта оның қолданылу аясы қандай?",
+                "Жасанды интеллект адам еңбегін толық алмастыра ала ма?",
+                "Болашақта қандай мамандықтар жойылуы мүмкін?",
+                "Жасанды интеллектінің ең үлкен қаупі неде?",
+                "Нейрожелілер білім беру жүйесін қалай өзгертуде?",
+                "Медицинада жасанды интеллектіні қалай пайдаланады?",
+                "Ғалымдар бұл технологияны қалай дамытып жатыр?",
+                "Жасанды интеллект әдебі деген не?",
+                "Күнделікті өмірде қандай бағдарламаларды пайдаланасыз?",
+                "Машиналық оқытудың негізгі мақсаты қандай?",
+                "Жасанды интеллект шығармашылықпен айналыса ала ма?",
+                "Бұл технология экономиканы қалай дамытады?",
+                "Қазақстанда бұл сала қалай дамып жатыр?",
+                "Роботтардың адамзатқа тигізер көмегі қандай?"
+            ]
+        },
+        {
+            "id": 11,
+            "title": "Жаһандық экологиялық мәселелер",
+            "level": "B2",
+            "description": "Жаһандық және аймақтық экологиялық проблемаларды қарастырыңыз. Қоршаған ортаны қорғау үшін қандай шаралар қолдану қажет?",
+            "questions": [
+                "Қазіргі таңдағы ең өзекті экологиялық мәселе қандай?",
+                "Ауаның ластануы адам денсаулығына қалай әсер етеді?",
+                "Жаһандық жылынудың зардаптары қандай?",
+                "Су ресурстарын үнемдеуді қалай жүзеге асыру керек?",
+                "Қалдықтарды сұрыптау неліктен маңызды?",
+                "Пластик өнімдерінен бас тарту мүмкін бе?",
+                "Ағаш отырғызудың табиғатқа тигізер пайдасы қандай?",
+                "Жасыл экономика дегенді қалай түсінесіз?",
+                "Баламалы энергия көздеріне не жатады?",
+                "Аймағыңыздағы басты экологиялық проблема қандай?",
+                "Мемлекет қоршаған ортаны қорғау үшін не істеуі керек?",
+                "Өндіріс орындарының табиғатқа зиянын қалай азайтады?",
+                "Жануарлар мен өсімдіктер дүниесін сақтау неге маңызды?",
+                "Экологиялық мәдениетті қалай қалыптастырамыз?",
+                "Жеке адам табиғатты қорғауға қандай үлес қоса алады?"
+            ]
+        },
+        {
+            "id": 12,
+            "title": "Кітап оқудың маңызы",
+            "level": "B2",
+            "description": "Кітап оқудың адамның интеллектуалдық және рухани дамуына әсерін дәлелдеңіз. Заманауи жастардың кітапқа деген ықыласы қандай?",
+            "questions": [
+                "Кітап оқу адамның сөздік қорын қалай байытады?",
+                "Көркем әдебиет пен ғылыми әдебиеттің айырмашылығы неде?",
+                "Электронды кітап пен қағаз кітаптың қайсысы тиімді?",
+                "Сүйікті авторыңыз және оның шығармасы қандай?",
+                "Кітап оқу сыни ойлауды қалай дамытады?",
+                "Қазіргі жастар қандай жанрларды көп оқиды?",
+                "Аудиокітаптардың пайдасы мен зияны қандай?",
+                "Кітапханалардың заманауи рөлі қандай болуы керек?",
+                "Бір кітапты қайталап оқу пайдалы ма?",
+                "Кітап таңдауда неге мән бересіз?",
+                "Кітап оқу үдерісін қалай әдетке айналдыруға болады?",
+                "Шығарманың желісімен түсірілген фильмдер сәтті шыға ма?",
+                "Бала кезде оқыған ең әсерлі кітабыңыз қайсы?",
+                "Кітап оқу адамның шығармашылық қабілетін қалай ашады?",
+                "Өмірлік бағыт сілтеген кітап бар ма?"
+            ]
+        },
+        {
+            "id": 13,
+            "title": "Ұлттық құндылықтар мен жаһандану",
+            "level": "C1",
+            "description": "Жаһандану дәуірінде ұлттық бірегейлікті сақтап қалу жолдарын саралаңыз. Салт-дәстүр мен заманауи үдерістердің үйлесімін талқылаңыз.",
+            "questions": [
+                "Жаһандану үдерісі ұлттық мәдениетке қалай әсер етеді?",
+                "Ұлттық құндылықтар дегеніміз не және оған не жатады?",
+                "Ана тілін сақтау ұлттың өміршеңдігін қалай қамтамасыз етеді?",
+                "Ұлттық салт-дәстүрлердің қайсысы ескірді, қайсысы өзекті?",
+                "Жастар бойында отансүйгіштік сезімді қалай қалыптастыруға болады?",
+                "Мәдени интеграцияның оң және теріс тұстары қандай?",
+                "Ұлттық өнерді әлемдік деңгейде қалай насихаттаймыз?",
+                "Жаһандану жағдайында ұлттық бірегейлікті жоғалтпаудың басты шарты не?",
+                "Тарихи сананы жаңғырту не үшін қажет?",
+                "Көпмәдениетті қоғамда ұлттық ерекшелікті сақтау мүмкін бе?",
+                "Ұлттық киімдер мен бұйымдардың заманауи сәні қандай?",
+                "Мәдени мұраны болашақ ұрпаққа қалай аманаттаймыз?",
+                "Шетелдік мәдениеттің ықпалынан қалай қорғану керек?",
+                "Ұлттық мерекелердің қоғамды біріктірудегі рөлі қандай?",
+                "Жаһандық азамат бола отырып, ұлттық құндылықты қалай сақтауға болады?"
+            ]
+        },
+        {
+            "id": 14,
+            "title": "Заманауи білім беру жүйесі",
+            "level": "C1",
+            "description": "Қазіргі білім беру жүйесінің сын-қатерлері мен даму үдерістерін талдаңыз. Сапалы білім алудың қоғамдық маңызын негіздеңіз.",
+            "questions": [
+                "Заманауи білім беру жүйесінің басты мақсаты қандай болуы керек?",
+                "Дәстүрлі білім беру мен қашықтан оқытудың айырмашылығы неде?",
+                "Кәсіби бағдар беру жұмыстарын қашан бастаған жөн?",
+                "Студенттер мен оқушылардың сыни ойлау қабілетін қалай дамытады?",
+                "Халықаралық емтихандардың білім сапасын бағалаудағы рөлі қандай?",
+                "Жоғары оқу орындарының дербестігі не үшін қажет?",
+                "Сапалы білімге қолжетімділікті қалай арттыруға болады?",
+                "Білім берудегі жаңа технологиялардың рөлі қандай?",
+                "Мұғалім мәртебесін көтерудің маңыздылығы неде?",
+                "Академиялық адалдық қағидаты қоғамға қалай әсер етеді?",
+                "Практикаға бағытталған білім берудің артықшылықтары қандай?",
+                "Өмір бойы білім алу тұжырымдамасы неліктен өзекті?",
+                "Инновациялық мектептердің тиімділігі неде?",
+                "Білім беру жүйесіндегі реформалардың сәтті болуы неге байланысты?",
+                "Болашақтың мектебін қалай елестетесіз?"
+            ]
+        },
+        {
+            "id": 15,
+            "title": "Ғылым мен технологияның дамуы",
+            "level": "C1",
+            "description": "Ғылыми жаңалықтар мен технологиялық прогрестің адамзат өркениетіне тигізген әсерін бағалаңыз. Ғылыми зерттеулердің рөлін айқындаңыз.",
+            "questions": [
+                "Ғылым мен технологияның дамуы адам өмірін қалай жеңілдетті?",
+                "Соңғы жылдардағы ең маңызды ғылыми жаңалық қайсы?",
+                "Ғылыми зерттеулерді қаржыландырудың маңызы қандай?",
+                "Биотехнология және гендік инженерия туралы көзқарасыңыз қандай?",
+                "Ғарышты игерудің адамзат үшін қандай пайдасы бар?",
+                "Технологиялық прогресс жұмыссыздыққа әкелуі мүмкін бе?",
+                "Шағын және үлкен ғылыми жобалардың қоғамға әсері қандай?",
+                "Кванттық компьютерлер заманауи ғылымды қалай өзгертеді?",
+                "Жастарды ғылымға тартудың тиімді жолдары қандай?",
+                "Стартаптар мен инновациялық идеяларды қалай қолдау керек?",
+                "Ғылымдағы әдеп шекаралары қай жерде аяқталуы тиіс?",
+                "Цифрлық теңсіздік мәселесін қалай шешуге болады?",
+                "Жасыл технологиялардың өндірістегі рөлі қандай?",
+                "Ғалымдардың әлеуметтік жауапкершілігі неде?",
+                "Технологиялық тұрғыдан толық автоматтандырылған болашаққа дайынбыз ба?"
+            ]
+        }
+    ];
+        function loadTasks() {
+            const list = document.getElementById('speakingList');
+            list.innerHTML = '';
+            mockQuestions.forEach(task => {
+                const card = document.createElement('div');
+                card.className = 'module-card';
+                card.innerHTML = `
+                    <div class="module-card-header">
+                        <h3 class="module-title">${task.title}</h3>
+                        <span class="module-badge">${task.level}</span>
+                    </div>
+                    <p class="module-description">Ұсынылатын уақыт: 2-3 минут</p>
+                    <button class="btn btn-primary" onclick="startSpeakingTest(${task.id})">Бастау</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+        const micBtn = document.getElementById('micBtn');
+        const audioPlayback = document.getElementById('audioPlayback');
+        const status = document.getElementById('status');
+        const sendBtn = document.getElementById('sendBtn');
+        function startSpeakingTest(id) {
+            currentTaskId = id;
+            const task = mockQuestions.find(t => t.id === id);
+
+            document.getElementById('taskTitle').textContent = task.title;
+            document.getElementById('taskDescription').textContent = task.description;
+            
+            document.getElementById('materialsScreen').style.display = 'none';
+            document.getElementById('simulatorScreen').style.display = 'flex';
+        }
+        micBtn.addEventListener('click', async () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                micBtn.classList.remove('recording');
+                status.textContent = 'Жазу аяқталды';
+                sendBtn.style.display = 'block';
+            } else {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        audioPlayback.src = URL.createObjectURL(blob);
+                        audioPlayback.style.display = 'block';
+                    };
+                    mediaRecorder.start();
+                    micBtn.classList.add('recording');
+                    status.textContent = 'Жазылуда... (Тоқтату үшін қайта басыңыз)';
+                } catch (err) {
+                    alert("Микрофонға рұқсат берілмеді немесе құрылғы табылмады!");
+                    console.error(err);
+                }
+            }
+        });
+        function closeSimulator() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            audioPlayback.src = '';
+            audioPlayback.style.display = 'none';
+            sendBtn.style.display = 'none';
+            status.textContent = 'Микрофонды қосу үшін түймені басыңыз';
+            micBtn.classList.remove('recording');
+            
+            document.getElementById('simulatorScreen').style.display = 'none';
+            document.getElementById('materialsScreen').style.display = 'block';
+        }
+        sendBtn.addEventListener('click', async () => {
+            if (audioChunks.length === 0) return;
+            const originalText = sendBtn.textContent;
+            sendBtn.textContent = 'Жіберілуде...';
+            sendBtn.disabled = true;
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append("file", audioBlob, "recording.webm");
+            formData.append("task_id", currentTaskId);
+            try {
+                const response = await fetch(`${API_URL}/speaking/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                const result = await response.json();
+                if (response.ok && (result.success || result.status === "success")) {
+                    alert("Аудио файл серверге сәтті жүктелді!");
+                    closeSimulator();
+                } else {
+                    alert("Қате шықты: " + (result.message || result.detail || "Белгісіз қате"));
+                }
+            } catch (error) {
+                console.error("Жіберу қатесі:", error);
+                alert("Сервермен байланыс жоқ. FastAPI қосылғанын тексеріңіз.");
+            } finally {
+                sendBtn.textContent = originalText;
+                sendBtn.disabled = false;
+            }
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUserProfile();
+            loadTasks();
+        });
+    </script>
+</body>
+</html>

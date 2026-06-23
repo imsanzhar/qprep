@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="kk" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="assets/images/icon.png">
+    <title>Кешеді тест | Q-prep</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .mock-container { max-width: 800px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; box-shadow: 0 4px 12px var(--shadow); position: relative; }
+        .stepper { display: flex; justify-content: space-between; margin-bottom: 40px; position: relative; }
+        .stepper::before { content: ''; position: absolute; top: 15px; left: 0; width: 100%; height: 2px; background: var(--border); z-index: 0; }
+        .step { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text-muted); }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.3s; }
+        .step.active .step-circle { background: var(--primary); border-color: var(--primary); color: white; }
+        .step.completed .step-circle { background: #28a745; border-color: #28a745; color: white; }
+        .step.active span, .step.completed span { color: var(--text-main); font-weight: 500; }
+        .test-section { display: none; animation: fadeIn 0.4s ease; }
+        .test-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .action-buttons { display: flex; justify-content: flex-end; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .option-label { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; color: var(--text-main); }
+        .option-label:hover { background: var(--surface-secondary); }
+        .timer-badge { display: none; background: #dc3545; color: white; font-size: 20px; font-weight: bold; padding: 10px 20px; border-radius: 8px; text-align: center; margin-bottom: 24px; box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2); }
+        .timer-badge.warning { background: #ffc107; color: #000; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-logo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px 10px 16px; text-align: center; width: 100%; box-sizing: border-box; height: auto; min-height: 120px; border-bottom: 1px solid var(--border);">
+            <img src="assets/images/icon.png" alt="Q-prep" style="width: 56px; height: 64px; object-fit: contain; flex-shrink: 0;">
+            <span style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-muted); line-height: 1.3;">
+                ҚАЗТЕСТ-КЕ ДАЙЫНДАЙТЫН ИНТЕРАКТИВТІ ПЛАТФОРМА
+            </span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a href="index.html">Басты бет</a></li>
+            <li class="sidebar-item"><a href="reading.html">Оқылым</a></li>
+            <li class="sidebar-item"><a href="listening.html">Тыңдалым</a></li>
+            <li class="sidebar-item"><a href="writing.html">Жазылым</a></li>
+            <li class="sidebar-item"><a href="speaking.html">Aйтылым</a></li>
+            <li class="sidebar-item active"><a href="mock.html">Кешенді тестілеу</a></li>
+            <li class="sidebar-item"><a href="vocabulary.html">Сөздік қоры</a></li>
+        </ul>
+    </aside>
+    <div class="main-wrapper">
+        <header class="header">
+            <button class="theme-toggle-btn" id="themeToggle" title="Тақырыпты өзгерту">
+                <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.22" x2="5.64" y2="17.84"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            </button>
+            <div class="user-profile" id="userProfileBtn" style="position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <div class="avatar" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; overflow: hidden;">
+                    <span id="avatar-letter">А</span>
+                    <img id="header-avatar-img" src="" alt="" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                </div>
+                <span id="user-display-name" style="font-weight: 500;">Пайдаланушы</span>
+                
+                <div id="profileDropdown" class="dropdown-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px; z-index: 100;">
+                    <ul style="list-style: none; padding: 10px 0; margin: 0;">
+                        <li>
+                            <a href="profile.html" style="display: block; padding: 10px 20px; color: var(--text-main); text-decoration: none; transition: 0.2s;">👤 Жеке кабинет</a>
+                        </li>
+                        <hr style="border-top: 1px solid var(--border); margin: 5px 0;">
+                        <li>
+                            <a href="#" onclick="logout()" style="display: block; padding: 10px 20px; color: #dc3545; text-decoration: none; transition: 0.2s;">🚪 Шығу</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <main class="content-container">
+            <div id="limitMessage" style="display: none; text-align: center; padding: 50px;">
+                <h2>🎉 Құттықтаймыз!</h2>
+                <p>Сіз барлық тесттерді тапсырып шықтыңыз. Енді басты бетке қайтуыңызға болады.</p>
+                <a href="index.html" class="btn">Басты бетке оралу</a>
+            </div>
+            <h2 id="mock-title" style="margin-bottom: 24px; color: var(--primary);">Кешенді пробный тест</h2>
+            <div class="mock-container">
+                <div class="stepper" id="stepper">
+                    <div class="step active" id="indicator-0"><div class="step-circle">1</div><span>Кіріспе</span></div>
+                    <div class="step" id="indicator-1"><div class="step-circle">2</div><span>Оқылым</span></div>
+                    <div class="step" id="indicator-2"><div class="step-circle">3</div><span>Тыңдалым</span></div>
+                    <div class="step" id="indicator-3"><div class="step-circle">4</div><span>Жазылым</span></div>
+                </div>
+                <div id="main-timer" class="timer-badge">Қалған уақыт: <span id="time-display">00:00</span></div>
+                <div class="test-section active" id="section-0">
+                    <h3 style="color: var(--primary);">Дайынсыз ба?</h3>
+                    <p style="margin-top: 16px; line-height: 1.6; color: var(--text-main);">Бұл сынақ тесті сіздің ҚАЗТЕСТ деңгейіңізді анықтауға көмектеседі. Тест келесідей уақытпен шектелген:</p>
+                    <ul style="margin: 12px 0 20px 20px; line-height: 1.8; color: var(--text-main);">
+                        <li><strong>Оқылым:</strong> 50 минут (40 сұрақ)</li>
+                        <li><strong>Тыңдалым:</strong> 20 минут (20 сұрақ)</li>
+                        <li><strong>Жазылым:</strong> 50 минут (2 тапсырма)</li>
+                    </ul>
+                    <p style="color: var(--text-muted); font-size: 14px;">Уақыт біткенде жүйе автоматты түрде келесі бөлімге өтеді.</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="start-btn" onclick="startTest()">Тестті бастау</button>
+                    </div>
+                </div>
+                <div class="test-section" id="section-1">
+                    <h3 id="reading-title" style="color: var(--text-main);">1-бөлім: Оқылым</h3>
+                    <div style="background: var(--surface-secondary); padding: 16px; border-radius: 8px; margin: 20px 0; color: var(--text-main);">
+                        <p id="reading-text">Мәтін жүктелуде...</p>
+                    </div>
+                    <div id="reading-questions-container" class="question-block" style="color: var(--text-main);"></div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="nextSection(2)">Келесі бөлім →</button>
+                    </div>
+                </div>
+                <div class="test-section" id="section-2">
+                    <h3 id="listening-title" style="color: var(--text-main);">2-бөлім: Тыңдалым</h3>
+                    <div style="margin: 20px 0;">
+                        <audio id="listening-audio" controls style="width: 100%;">
+                            <source src="" type="audio/mpeg">
+                        </audio>
+                    </div>
+                    <div id="listening-questions-container" class="question-block" style="color: var(--text-main);"></div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="nextSection(3)">Келесі бөлім →</button>
+                    </div>
+                </div>
+                <div class="test-section" id="section-3">
+                    <h3 style="color: var(--text-main);">3-бөлім: Жазылым</h3>
+                    <div id="writing-tasks-container">
+                        <p style="margin: 16px 0; color: var(--text-main);"><strong id="writing-title">1-тапсырма:</strong> <span id="writing-prompt">Жүктелуде...</span></p>
+                        <textarea id="writing-textarea-1" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; resize: none; background: var(--surface); color: var(--text-main); margin-bottom: 20px;" placeholder="Осында жазыңыз..."></textarea>
+                        
+                        <p style="margin: 16px 0; color: var(--text-main);"><strong>2-тапсырма:</strong> <span id="writing-prompt-2">Екінші тапсырма мәтіні...</span></p>
+                        <textarea id="writing-textarea-2" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; resize: none; background: var(--surface); color: var(--text-main);" placeholder="Осында жазыңыз..."></textarea>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="finish-btn" style="background: #28a745; border-color: #28a745;" onclick="finishTest()">Тестті аяқтау ✔</button>
+                    </div>
+                </div>
+                <div class="test-section" id="section-4" style="text-align: center;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+                    <h2 style="color: var(--primary);">Тест сәтті аяқталды!</h2>
+                    <h3 id="score-display" style="margin: 20px 0; color: #28a745;">Сіздің нәтижеңіз: есептелуде...</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 20px;">Жауаптарыңыз базаға сақталды. Эссе тексеруге жіберілді.</p>
+                    <div class="action-buttons" style="justify-content: center; border: none;">
+                        <button class="btn btn-primary" onclick="window.location.href='index.html'">Басты бетке оралу</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    <script src="assets/js/app.js"></script>
+<script>
+        const API_URL = "http://127.0.0.1:8000/api/v1";
+        const token = localStorage.getItem('access_token');
+        if (!token) window.location.href = 'login.html';
+        function logout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+        function applyHeaderProfile() {
+            const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+            const nameEl = document.getElementById('user-display-name');
+            const letterEl = document.getElementById('avatar-letter');
+            const imgEl = document.getElementById('header-avatar-img');
+            if (nameEl && profile.firstName) nameEl.innerText = profile.firstName;
+            if (letterEl && profile.firstName) letterEl.innerText = profile.firstName.charAt(0).toUpperCase();
+            if (imgEl) {
+                if (profile.avatar) {
+                    imgEl.src = profile.avatar;
+                    imgEl.style.display = 'block';
+                    if (letterEl) letterEl.style.display = 'none';
+                } else {
+                    imgEl.style.display = 'none';
+                    if (letterEl) letterEl.style.display = '';
+                }
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+                    const apiName = result.data.full_name;
+                    if (!profile.firstName && apiName) {
+                        profile.firstName = apiName.split(' ')[0];
+                        localStorage.setItem('user_profile', JSON.stringify(profile));
+                    }
+                    document.getElementById('welcome-name') && (document.getElementById('welcome-name').innerText = profile.firstName || apiName);
+                    applyHeaderProfile();
+                }
+            } catch (error) {
+                console.error('Профиль қатесі:', error);
+                applyHeaderProfile();
+            }
+        }
+        let timerInterval;
+        const timerBadge = document.getElementById('main-timer');
+        const timeDisplay = document.getElementById('time-display');
+        function startTimer(minutes, nextSectionIdx) {
+            clearInterval(timerInterval);
+            let timeRemaining = minutes * 60;
+            if (timerBadge) {
+                timerBadge.style.display = 'block';
+                timerBadge.classList.remove('warning');
+            }
+            function updateDisplay() {
+                let m = Math.floor(timeRemaining / 60);
+                let s = timeRemaining % 60;
+                if (timeDisplay) {
+                    timeDisplay.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }
+                if (timeRemaining <= 300 && timerBadge) {
+                    timerBadge.classList.add('warning');
+                }
+            }
+            updateDisplay();
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateDisplay();
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Уақыт аяқталды! Келесі бөлімге автоматты түрде өтеміз.");
+                    if (nextSectionIdx === 4) finishTest();
+                    else nextSection(nextSectionIdx);
+                }
+            }, 1000);
+        }
+        function stopTimer() { 
+            clearInterval(timerInterval); 
+            if (timerBadge) timerBadge.style.display = 'none'; 
+        }
+        const mockTestDatabase = [
+        {
+            "id": 1,
+            "reading": [
+                {
+                    "title": "Мәтін №1: Қазақстанның табиғаты",
+                    "text": "Қазақстан өте үлкен мемлекет. Оның табиғаты бай әрі әдемі. Мұнда биік таулар мен кең далалар бар. Орман мен көлдер де өте көп. Адамдар табиғатты қорғауға міндетті. Жазда ауа райы ыстық болады. Қыста қар жауады және күн суытады. Көктемде жер беті жасыл желекке оранады. Күзде жапырақтар сарғайып түседі. Қазақстанда көптеген жануарлар мекендейді. Қызыл кітапқа енген аңдар мен құстар бар. Оларды аулауға қатаң тыйым салынған. Еліміздің табиғаты туристерді қызықтырады. Шетелден көптеген қонақтар келеді. Олар біздің көлдеріміз бен тауларымызға таңғалады.",
+                    "questions": [
+                        { "id": "t1_r_1", "text": "Қазақстан қандай мемлекет?", "options": ["Үлкен", "Кішкентай", "Шағын", "Тар"], "correct": "Үлкен" },
+                        { "id": "t1_r_2", "text": "Табиғаты қандай?", "options": ["Бай әрі әдемі", "Жарлы", "Лас", "Сусыз"], "correct": "Бай әрі әдемі" },
+                        { "id": "t1_r_3", "text": "Мұнда қандай жерлер бар?", "options": ["Биік таулар", "Терең мұхит", "Джунгли", "Мұздықтар"], "correct": "Биік таулар" },
+                        { "id": "t1_r_4", "text": "Адамдар не істеуге міндетті?", "options": ["Табиғатты қорғауға", "Ағаш кесуге", "Ластауға", "Ұмытуға"], "correct": "Табиғатты қорғауға" },
+                        { "id": "t1_r_5", "text": "Жазда ауа райы қандай болады?", "options": ["Ыстық", "Суық", "Қарлы", "Боранды"], "correct": "Ыстық" },
+                        { "id": "t1_r_6", "text": "Қыста не жауады?", "options": ["Қар", "Жаңбыр", "Бұршақ", "Шаң"], "correct": "Қар" },
+                        { "id": "t1_r_7", "text": "Көктемде жер беті қандай түске енеді?", "options": ["Жасыл", "Сары", "Ақ", "Қара"], "correct": "Жасыл" },
+                        { "id": "t1_r_8", "text": "Күзде жапырақтар қайтеді?", "options": ["Сарғаяды", "Көгереді", "Өседі", "Гүлдейді"], "correct": "Сарғаяды" },
+                        { "id": "t1_r_9", "text": "Қазақстанда нелер көп мекендейді?", "options": ["Жануарлар", "Алыптар", "Динозаврлар", "Киттер"], "correct": "Жануарлар" },
+                        { "id": "t1_r_10", "text": "Сирек кездесетін аңдар қайда енген?", "options": ["Қызыл кітапқа", "Көк кітапқа", "Ақ кітапқа", "Журналға"], "correct": "Қызыл кітапқа" },
+                        { "id": "t1_r_11", "text": "Оларды аулауға бола ма?", "options": ["Тыйым салынған", "Болады", "Рұқсат", "Білмеймін"], "correct": "Тыйым салынған" },
+                        { "id": "t1_r_12", "text": "Табиғат кімдерді қызықтырады?", "options": ["Туристерді", "Сатушыларды", "Әншілерді", "Дәрігерлерді"], "correct": "Туристерді" },
+                        { "id": "t1_r_13", "text": "Шетелден кімдер келеді?", "options": ["Қонақтар", "Көршілер", "Балалар", "Туыстар"], "correct": "Қонақтар" },
+                        { "id": "t1_r_14", "text": "Олар неге таңғалады?", "options": ["Көлдер мен тауларға", "Жолдарға", "Үйлерге", "Көлікке"], "correct": "Көлдер мен тауларға" },
+                        { "id": "t1_r_15", "text": "Мәтіннің негізгі тақырыбы қандай?", "options": ["Табиғат", "Спорт", "Білім", "Ғарыш"], "correct": "Табиғат" }
+                    ]
+                }
+            ],
+            "listening": [
+                {
+                    "title": "Аудиоматериал №1 (Ауа райы туралы диалог)",
+                    "audio_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                    "questions": [
+                        { "id": "t1_l_1", "text": "Ауа райы қандай?", "options": ["Жылы", "Суық", "Қарлы", "Бұлтты"], "correct": "Жылы" },
+                        { "id": "t1_l_2", "text": "Ертең не болады?", "options": ["Жаңбыр", "Қар", "Дауыл", "Аяз"], "correct": "Жаңбыр" },
+                        { "id": "t1_l_3", "text": "Жел қандай?", "options": ["Қатты", "Ақырын", "Жоқ", "Жылы"], "correct": "Қатты" },
+                        { "id": "t1_l_4", "text": "Қай мезгіл?", "options": ["Көктем", "Жаз", "Күз", "Қыс"], "correct": "Көктем" },
+                        { "id": "t1_l_5", "text": "Адамдар қалай киінген?", "options": ["Жеңіл", "Қалың", "Спорттық", "Қысқы"], "correct": "Жеңіл" },
+                        { "id": "t1_l_6", "text": "Күн көзі көріне ме?", "options": ["Иә", "Жоқ", "Кейде", "Белгісіз"], "correct": "Иә" },
+                        { "id": "t1_l_7", "text": "Демалыста ауа райы өзгере ме?", "options": ["Өзгереді", "Өзгермейді", "Білмеймін", "Мүмкін емес"], "correct": "Өзгереді" },
+                        { "id": "t1_l_8", "text": "Температура қанша градус?", "options": ["Жиырма", "Он", "Нөл", "Отыз"], "correct": "Жиырма" },
+                        { "id": "t1_l_9", "text": "Түнде не болады?", "options": ["Салқын", "Ыстық", "Жарқырап тұрады", "Қар"], "correct": "Салқын" },
+                        { "id": "t1_l_10", "text": "Жолдар қандай болады?", "options": ["Сулы", "Құрғақ", "Таза", "Шаңды"], "correct": "Сулы" },
+                        { "id": "t1_l_11", "text": "Қандай киім алу керек?", "options": ["Қолшатыр", "Көзілдірік", "Қолғап", "Шляпа"], "correct": "Қолшатыр" },
+                        { "id": "t1_l_12", "text": "Балалар далада ойнай ала ма?", "options": ["Жоқ", "Иә", "Тек кешке", "Таңертең"], "correct": "Жоқ" },
+                        { "id": "t1_l_13", "text": "Бұлттар қандай?", "options": ["Қара", "Ақ", "Көк", "Сары"], "correct": "Қара" },
+                        { "id": "t1_l_14", "text": "Ауа райы болжамын кім айтты?", "options": ["Диктор", "Дәрігер", "Ұстаз", "Аспаз"], "correct": "Диктор" },
+                        { "id": "t1_l_15", "text": "Хабарлама қашан берілді?", "options": ["Таңертең", "Түнде", "Кешке", "Түсте"], "correct": "Таңертең" }
+                    ]
+                }
+            ],
+            "writing": [
+                {
+                    "type": 1,
+                    "title": "1-тапсырма: Сурет бойынша мазмұндау",
+                    "prompt": "Төмендегі суретке қарап, табиғатты қорғау тақырыбында өз ойыңызды жазыңыз (кемі 100 сөз).",
+                    "imageUrl": "https://via.placeholder.com/600x300?text=Tabighat",
+                    "aiContext": "Суретте табиғат аясында демалып, айналаны тазалап жүрген адамдар бейнеленген."
+                },
+                {
+                    "type": 2,
+                    "title": "2-тапсырма: Эссе",
+                    "prompt": "«Табиғатқа қамқорлық» тақырыбында эссе жазыңыз (150-200 сөз).",
+                    "aiContext": "Табиғатты қорғау және экологиялық мәдениет туралы эссе"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "reading": [
+                {
+                    "title": "Мәтін №1: Наурыз мейрамы",
+                    "text": "Наурыз жыл басы саналады. Бұл мереке табиғаттың оянуын білдіреді. Адамдар бір бірін құттықтап, жақсы тілектер айтады. Наурыз көже пісіріледі. Бұл тағам жеті түрлі қоспадан жасалады. Мерекеде ұлттық ойындар ойналады. Алтыбақан тебіліп, көкпар тартылады. Адамдар реніштерін кешіріп, татуласады. Бұлақтардың көзін ашып, ағаш отырғызады. Наурыз бейбітшілік пен достық мерекесі. Бұл күні табиғат та, адам да жаңарады. Күн мен түн теңеледі. Қазақ халқы бұл күнді Ұлыстың ұлы күні деп атайды. Жастар үлкендерден бата алады. Дастарқанға ақ мол болсын деп тілейді.",
+                    "questions": [
+                        { "id": "t2_r_1", "text": "Жыл басы қалай аталады?", "options": ["Наурыз", "Айт", "Жаңа жыл", "Көктем"], "correct": "Наурыз" },
+                        { "id": "t2_r_2", "text": "Мереке нені білдіреді?", "options": ["Оянуды", "Ұйқыны", "Суықты", "Желді"], "correct": "Оянуды" },
+                        { "id": "t2_r_3", "text": "Не пісіріледі?", "options": ["Көже", "Палау", "Ет", "Сорпа"], "correct": "Көже" },
+                        { "id": "t2_r_4", "text": "Қоспа саны қанша?", "options": ["Жеті", "Бес", "Алты", "Үш"], "correct": "Жеті" },
+                        { "id": "t2_r_5", "text": "Қандай ойындар ойналады?", "options": ["Ұлттық", "Заманауи", "Компьютерлік", "Үстел"], "correct": "Ұлттық" },
+                        { "id": "t2_r_6", "text": "Қандай көлікпен жарысады?", "options": ["Атпен", "Көлікпен", "Велосипедпен", "Жаяу"], "correct": "Атпен" },
+                        { "id": "t2_r_7", "text": "Адамдар не істейді?", "options": ["Татуласады", "Ұрсысады", "Қашады", "Жылайды"], "correct": "Татуласады" },
+                        { "id": "t2_r_8", "text": "Ненің көзін ашады?", "options": ["Бұлақтың", "Есіктің", "Терезенің", "Қораптың"], "correct": "Бұлақтың" },
+                        { "id": "t2_r_9", "text": "Не отырғызады?", "options": ["Ағаш", "Гүл", "Шөп", "Картоп"], "correct": "Ағаш" },
+                        { "id": "t2_r_10", "text": "Наурыз қандай мереке?", "options": ["Бейбітшілік", "Соғыс", "Қайғы", "Уайым"], "correct": "Бейбітшілік" },
+                        { "id": "t2_r_11", "text": "Не теңеледі?", "options": ["Күн мен түн", "Жыл мен ай", "Аспан мен жер", "Су мен құрлық"], "correct": "Күн мен түн" },
+                        { "id": "t2_r_12", "text": "Қазақ халқы бұл күнді қалай атайды?", "options": ["Ұлы күн", "Кіші күн", "Жай күн", "Қысқа күн"], "correct": "Ұлы күн" },
+                        { "id": "t2_r_13", "text": "Жастар кімнен бата алады?", "options": ["Үлкендерден", "Балалардан", "Құрдастардан", "Достардан"], "correct": "Үлкендерден" },
+                        { "id": "t2_r_14", "text": "Дастарқанға не тілейді?", "options": ["Ақ мол болсын", "Су көп болсын", "Бос болсын", "Тар болсын"], "correct": "Ақ мол болсын" },
+                        { "id": "t2_r_15", "text": "Мереке қашан өтеді?", "options": ["Көктемде", "Жазда", "Қыста", "Күзде"], "correct": "Көктемде" }
+                    ]
+                }
+            ],
+            "listening": [
+                {
+                    "title": "Аудиоматериал №2 (Спорт жаңалықтары)",
+                    "audio_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                    "questions": [
+                        { "id": "t2_l_1", "text": "Хабарлама не туралы?", "options": ["Спорт", "Кино", "Саясат", "Ауа райы"], "correct": "Спорт" },
+                        { "id": "t2_l_2", "text": "Қай спорт түрі айтылды?", "options": ["Футбол", "Шахмат", "Теннис", "Бокс"], "correct": "Футбол" },
+                        { "id": "t2_l_3", "text": "Жарыс қайда өтті?", "options": ["Астанада", "Алматыда", "Парижде", "Лондонда"], "correct": "Астанада" },
+                        { "id": "t2_l_4", "text": "Кім жеңіске жетті?", "options": ["Жерлесіміз", "Қонақ", "Шетелдік", "Белгісіз"], "correct": "Жерлесіміз" },
+                        { "id": "t2_l_5", "text": "Қандай медаль алды?", "options": ["Алтын", "Күміс", "Қола", "Темір"], "correct": "Алтын" },
+                        { "id": "t2_l_6", "text": "Жарыс қанша күнге созылды?", "options": ["Үш", "Бес", "Бір", "Он"], "correct": "Үш" },
+                        { "id": "t2_l_7", "text": "Көрермендер көп болды ма?", "options": ["Иә", "Жоқ", "Аз", "Білмеймін"], "correct": "Иә" },
+                        { "id": "t2_l_8", "text": "Келесі жарыс қашан?", "options": ["Ертең", "Бүгін", "Келесі айда", "Келесі жылы"], "correct": "Ертең" },
+                        { "id": "t2_l_9", "text": "Спортшының көңіл күйі қандай?", "options": ["Қуанышты", "Мұңды", "Ашулы", "Шаршаңқы"], "correct": "Қуанышты" },
+                        { "id": "t2_l_10", "text": "Жаттықтырушы не деді?", "options": ["Мақтады", "Ұрысты", "Үндемеді", "Кетіп қалды"], "correct": "Мақтады" },
+                        { "id": "t2_l_11", "text": "Спорт қай жерде пайдалы?", "options": ["Денсаулыққа", "Жұмысқа", "Ұйқыға", "Киімге"], "correct": "Денсаулыққа" },
+                        { "id": "t2_l_12", "text": "Қай арнадан көрсетілді?", "options": ["Спорт", "Жаңалықтар", "Балалар", "Музыка"], "correct": "Спорт" },
+                        { "id": "t2_l_13", "text": "Хабарды кім жүргізді?", "options": ["Журналист", "Спортшы", "Дәрігер", "Мұғалім"], "correct": "Журналист" },
+                        { "id": "t2_l_14", "text": "Бұл қай деңгейдегі жарыс?", "options": ["Әлемдік", "Ауылдық", "Мектептік", "Қалалық"], "correct": "Әлемдік" },
+                        { "id": "t2_l_15", "text": "Командада қанша адам бар?", "options": ["Он бір", "Бес", "Жеті", "Екі"], "correct": "Он бір" }
+                    ]
+                }
+            ],
+            "writing": [
+                {
+                    "type": 1,
+                    "title": "1-тапсырма: Сурет бойынша мазмұндау",
+                    "prompt": "Төмендегі суретке қарап, ұлттық дәстүрлер туралы жазыңыз (кемі 100 сөз).",
+                    "imageUrl": "https://via.placeholder.com/600x300?text=Nauryz",
+                    "aiContext": "Суретте киіз үй жанында ұлттық киім киген адамдар мен алтыбақан бейнеленген."
+                },
+                {
+                    "type": 2,
+                    "title": "2-тапсырма: Эссе",
+                    "prompt": "«Спорт денсаулық кепілі» тақырыбында эссе жазыңыз (150-200 сөз).",
+                    "aiContext": "Спорттың адам өміріндегі және денсаулықты сақтаудағы маңызы туралы эссе"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "reading": [
+                {
+                    "title": "Мәтін №1: Денсаулық және тамақтану",
+                    "text": "Денсаулық адамның ең үлкен байлығы. Дұрыс тамақтану өте маңызды. Күн сайын таза су ішу керек. Жемістер мен көкөністерде дәрумендер көп. Таңертең міндетті түрде таңғы ас ішу қажет. Фастфуд және тәтті сусындар зиянды. Спортпен шұғылдану денені шынықтырады. Таза ауада серуендеу пайдалы. Ұйқының қанбауы шаршауға әкеледі. Күніне сегіз сағат ұйықтау керек. Дәрігерге уақытында қаралу маңызды. Тазалықты сақтау аурудың алдын алады. Қолыңызды сабынмен жиі жуыңыз. Тісті күніне екі рет тазалаңыз. Салауатты өмір салтын ұстаныңыз.",
+                    "questions": [
+                        { "id": "t3_r_1", "text": "Ең үлкен байлық не?", "options": ["Денсаулық", "Ақша", "Көлік", "Үй"], "correct": "Денсаулық" },
+                        { "id": "t3_r_2", "text": "Не маңызды?", "options": ["Дұрыс тамақтану", "Көп ұйықтау", "Көп ойнау", "Аз жеу"], "correct": "Дұрыс тамақтану" },
+                        { "id": "t3_r_3", "text": "Күн сайын не ішу керек?", "options": ["Су", "Шай", "Кофе", "Шырын"], "correct": "Су" },
+                        { "id": "t3_r_4", "text": "Дәрумендер неде көп?", "options": ["Жемістерде", "Етте", "Нанда", "Кәмпитте"], "correct": "Жемістерде" },
+                        { "id": "t3_r_5", "text": "Таңертең не қажет?", "options": ["Таңғы ас", "Кешкі ас", "Түскі ас", "Ұйқы"], "correct": "Таңғы ас" },
+                        { "id": "t3_r_6", "text": "Не зиянды?", "options": ["Фастфуд", "Сорпа", "Салат", "Сүт"], "correct": "Фастфуд" },
+                        { "id": "t3_r_7", "text": "Спорт не істейді?", "options": ["Шынықтырады", "Аурутады", "Шаршатады", "Құлатады"], "correct": "Шынықтырады" },
+                        { "id": "t3_r_8", "text": "Қайда серуендеу пайдалы?", "options": ["Таза ауада", "Үйде", "Дүкенде", "Жолда"], "correct": "Таза ауада" },
+                        { "id": "t3_r_9", "text": "Не жетіспесе шаршайды?", "options": ["Ұйқы", "Су", "Ойын", "Күлкі"], "correct": "Ұйқы" },
+                        { "id": "t3_r_10", "text": "Күніне неше сағат ұйықтау керек?", "options": ["Сегіз", "Бес", "Он екі", "Үш"], "correct": "Сегіз" },
+                        { "id": "t3_r_11", "text": "Кімге қаралу маңызды?", "options": ["Дәрігерге", "Сатушыға", "Көршіге", "Жүргізушіге"], "correct": "Дәрігерге" },
+                        { "id": "t3_r_12", "text": "Не аурудың алдын алады?", "options": ["Тазалық", "Кірлік", "Суық", "Ыстық"], "correct": "Тазалық" },
+                        { "id": "t3_r_13", "text": "Қолды немен жуу керек?", "options": ["Сабынмен", "Топырақмен", "Құммен", "Сумен ғана"], "correct": "Сабынмен" },
+                        { "id": "t3_r_14", "text": "Тісті күніне неше рет тазалайды?", "options": ["Екі", "Бір", "Үш", "Жоқ"], "correct": "Екі" },
+                        { "id": "t3_r_15", "text": "Қандай өмір салты қажет?", "options": ["Салауатты", "Жалқау", "Белсенді емес", "Зиянды"], "correct": "Салауатты" }
+                    ]
+                }
+            ],
+            "listening": [
+                {
+                    "title": "Аудиоматериал №3 (Дәрігер кеңесі)",
+                    "audio_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                    "questions": [
+                        { "id": "t3_l_1", "text": "Кім сөйлеп жатыр?", "options": ["Дәрігер", "Оқушы", "Әнші", "Жүргізуші"], "correct": "Дәрігер" },
+                        { "id": "t3_l_2", "text": "Не туралы айтты?", "options": ["Денсаулық", "Тарих", "Математика", "Космос"], "correct": "Денсаулық" },
+                        { "id": "t3_l_3", "text": "Витамин қайда бар?", "options": ["Алмада", "Суда", "Нанда", "Таста"], "correct": "Алмада" },
+                        { "id": "t3_l_4", "text": "Суық су ішуге бола ма?", "options": ["Жоқ", "Иә", "Әрдайым", "Түнде ғана"], "correct": "Жоқ" },
+                        { "id": "t3_l_5", "text": "Көзге не зиян?", "options": ["Экран", "Кітап", "Дала", "Жарық"], "correct": "Экран" },
+                        { "id": "t3_l_6", "text": "Жаттығу қашан жасау керек?", "options": ["Таңертең", "Түнде", "Кешке", "Ешқашан"], "correct": "Таңертең" },
+                        { "id": "t3_l_7", "text": "Иммунитетті қалай көтереді?", "options": ["Спортпен", "Ұйқымен", "Тамақпен", "Дәрімен ғана"], "correct": "Спортпен" },
+                        { "id": "t3_l_8", "text": "Қандай тамақ жеу керек?", "options": ["Пайдалы", "Тәтті", "Ащы", "Майлы"], "correct": "Пайдалы" },
+                        { "id": "t3_l_9", "text": "Стресс неге әкеледі?", "options": ["Ауруға", "Қуанышқа", "Күлкіге", "Денсаулыққа"], "correct": "Ауруға" },
+                        { "id": "t3_l_10", "text": "Дәрігер кімге көмектеседі?", "options": ["Науқасқа", "Сатушыға", "Оқушыға", "Қонаққа"], "correct": "Науқасқа" },
+                        { "id": "t3_l_11", "text": "Кеңес пайдалы ма?", "options": ["Иә", "Жоқ", "Аздап", "Зиян"], "correct": "Иә" },
+                        { "id": "t3_l_12", "text": "Тыныс алу маңызды ма?", "options": ["Иә", "Жоқ", "Тек жазда", "Тек қыста"], "correct": "Иә" },
+                        { "id": "t3_l_13", "text": "Табиғи дәрілер қандай?", "options": ["Шөптер", "Тастар", "Сулар", "Топырақ"], "correct": "Шөптер" },
+                        { "id": "t3_l_14", "text": "Қанша су ішу керек күніне?", "options": ["Екі литр", "Бір стақан", "Бес литр", "Жарты литр"], "correct": "Екі литр" },
+                        { "id": "t3_l_15", "text": "Денсаулық кімнің қолында?", "options": ["Өзіміздің", "Дәрігердің", "Мұғалімнің", "Достың"], "correct": "Өзіміздің" }
+                    ]
+                }
+            ],
+            "writing": [
+                {
+                    "type": 1,
+                    "title": "1-тапсырма: Сурет бойынша мазмұндау",
+                    "prompt": "Төмендегі суретке қарап, салауатты өмір салты туралы жазыңыз (кемі 100 сөз).",
+                    "imageUrl": "https://via.placeholder.com/600x300?text=Densaulyq",
+                    "aiContext": "Суретте пайдалы тағамдар мен спортпен шұғылданып жатқан адамдар көрсетілген."
+                },
+                {
+                    "type": 2,
+                    "title": "2-тапсырма: Эссе",
+                    "prompt": "«Дұрыс тамақтанудың маңызы» тақырыбында эссе жазыңыз (150-200 сөз).",
+                    "aiContext": "Дұрыс тамақтану және оның денсаулыққа әсері туралы эссе"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "reading": [
+                {
+                    "title": "Мәтін №1: Технология және интернет",
+                    "text": "Қазіргі заманды интернетсіз елестету мүмкін емес. Технологиялар өмірімізді жеңілдетеді. Ұялы телефон арқылы кез келген ақпаратты алуға болады. Мектепте оқушылар компьютерді жиі қолданады. Электрондық кітаптар өте ыңғайлы. Бірақ экранға көп қарау көзге зиян. Сондықтан уақытты дұрыс бөлу қажет. Интернетте пайдалы ақпаратпен қатар жалған мәліметтер де кездеседі. Адамдар әлеуметтік желілерде көп уақыт өткізеді. Бұл жанды қарым қатынасты азайтады. Роботтар көптеген жұмыстарды атқара бастады. Болашақта жаңа мамандықтар пайда болады. Технологияны тек жақсы мақсатта пайдалану керек. Жасанды интеллект ғылымның үлкен жетістігі. Біз заман көшінен қалмауымыз керек.",
+                    "questions": [
+                        { "id": "t4_r_1", "text": "Қазіргі заманды несіз елестету қиын?", "options": ["Интернетсіз", "Кітапсыз", "Теледидарсыз", "Радиосыз"], "correct": "Интернетсіз" },
+                        { "id": "t4_r_2", "text": "Не өмірді жеңілдетеді?", "options": ["Технология", "Қағаз", "Қалам", "Ағаш"], "correct": "Технология" },
+                        { "id": "t4_r_3", "text": "Ақпаратты қайдан аламыз?", "options": ["Телефоннан", "Аспаннан", "Тастан", "Ағаштан"], "correct": "Телефоннан" },
+                        { "id": "t4_r_4", "text": "Мектепте не қолданады?", "options": ["Компьютер", "Күрек", "Балта", "Арқан"], "correct": "Компьютер" },
+                        { "id": "t4_r_5", "text": "Қандай кітаптар ыңғайлы?", "options": ["Электрондық", "Ауыр", "Ескі", "Жыртық"], "correct": "Электрондық" },
+                        { "id": "t4_r_6", "text": "Экранға қарау неге зиян?", "options": ["Көзге", "Құлаққа", "Шашқа", "Мұрынға"], "correct": "Көзге" },
+                        { "id": "t4_r_7", "text": "Нені дұрыс бөлу керек?", "options": ["Уақытты", "Ақшаны", "Тамақты", "Киімді"], "correct": "Уақытты" },
+                        { "id": "t4_r_8", "text": "Интернетте қандай мәлімет кездеседі?", "options": ["Жалған", "Тек рас", "Белгісіз", "Ескі"], "correct": "Жалған" },
+                        { "id": "t4_r_9", "text": "Адамдар қайда уақыт өткізеді?", "options": ["Желіде", "Орманды", "Тауда", "Суда"], "correct": "Желіде" },
+                        { "id": "t4_r_10", "text": "Бұл нені азайтады?", "options": ["Қарым қатынасты", "Ақшаны", "Киімді", "Тамақты"], "correct": "Қарым қатынасты" },
+                        { "id": "t4_r_11", "text": "Жұмысты не атқарады?", "options": ["Роботтар", "Жануарлар", "Ағаштар", "Құстар"], "correct": "Роботтар" },
+                        { "id": "t4_r_12", "text": "Болашақта не пайда болады?", "options": ["Жаңа мамандықтар", "Ескі үйлер", "Динозаврлар", "Жоспарлар"], "correct": "Жаңа мамандықтар" },
+                        { "id": "t4_r_13", "text": "Технологияны қандай мақсатта пайдаланады?", "options": ["Жақсы", "Жаман", "Қауіпті", "Зиянды"], "correct": "Жақсы" },
+                        { "id": "t4_r_14", "text": "Ғылымның үлкен жетістігі не?", "options": ["Жасанды интеллект", "От", "Дөңгелек", "Қағаз"], "correct": "Жасанды интеллект" },
+                        { "id": "t4_r_15", "text": "Біз неден қалмауымыз керек?", "options": ["Заманнан", "Көліктен", "Ұйқыдан", "Тамақтан"], "correct": "Заманнан" }
+                    ]
+                }
+            ],
+            "listening": [
+                {
+                    "title": "Аудиоматериал №4 (IT маманымен сұхбат)",
+                    "audio_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+                    "questions": [
+                        { "id": "t4_l_1", "text": "Сұхбат кіммен?", "options": ["IT маманмен", "Дәрігермен", "Аспазбен", "Күзетшімен"], "correct": "IT маманмен" },
+                        { "id": "t4_l_2", "text": "Не туралы сөйлесті?", "options": ["Бағдарламалау", "Тамақ", "Киім", "Спорт"], "correct": "Бағдарламалау" },
+                        { "id": "t4_l_3", "text": "Код жазу қиын ба?", "options": ["Басында қиын", "Оңай", "Мүмкін емес", "Бәрі жазады"], "correct": "Басында қиын" },
+                        { "id": "t4_l_4", "text": "Қай тіл танымал?", "options": ["Пайтон", "Латын", "Грек", "Көне тіл"], "correct": "Пайтон" },
+                        { "id": "t4_l_5", "text": "Маман қайда оқыған?", "options": ["Университетте", "Мектепте ғана", "Ауылда", "Үйде"], "correct": "Университетте" },
+                        { "id": "t4_l_6", "text": "Жұмыстың несі қызық?", "options": ["Жаңалық", "Жалақы", "Ұйқы", "Демалыс"], "correct": "Жаңалық" },
+                        { "id": "t4_l_7", "text": "Компьютер қандай болуы керек?", "options": ["Мықты", "Ескі", "Әлсіз", "Жай"], "correct": "Мықты" },
+                        { "id": "t4_l_8", "text": "Күніне неше сағат отырады?", "options": ["Сегіз", "Екі", "Бір", "Он бес"], "correct": "Сегіз" },
+                        { "id": "t4_l_9", "text": "Көзді қалай қорғайды?", "options": ["Көзілдірікпен", "Қолмен", "Сумен", "Дәрімен"], "correct": "Көзілдірікпен" },
+                        { "id": "t4_l_10", "text": "Қауіпсіздік маңызды ма?", "options": ["Иә", "Жоқ", "Аздап", "Белгісіз"], "correct": "Иә" },
+                        { "id": "t4_l_11", "text": "Вирустардан қалай қорғанады?", "options": ["Антивируспен", "Сумен", "Отпен", "Сөзбен"], "correct": "Антивируспен" },
+                        { "id": "t4_l_12", "text": "Балаларға не оқу керек?", "options": ["Математика", "Сурет", "Музыка", "Би"], "correct": "Математика" },
+                        { "id": "t4_l_13", "text": "Технология кімге арналған?", "options": ["Бәріне", "Тек жастарға", "Тек балаларға", "Тек мамандарға"], "correct": "Бәріне" },
+                        { "id": "t4_l_14", "text": "Келешекте не дамиды?", "options": ["Жасанды интеллект", "Ескі көліктер", "Радио", "Телеграф"], "correct": "Жасанды интеллект" },
+                        { "id": "t4_l_15", "text": "Маман қандай кеңес берді?", "options": ["Үйренуді тоқтатпау", "Көп ұйықтау", "Ойнау", "Жұмыс істемеу"], "correct": "Үйренуді тоқтатпау" }
+                    ]
+                }
+            ],
+            "writing": [
+                {
+                    "type": 1,
+                    "title": "1-тапсырма: Сурет бойынша мазмұндау",
+                    "prompt": "Төмендегі суретке қарап, заманауи технологиялар туралы жазыңыз (кемі 100 сөз).",
+                    "imageUrl": "https://via.placeholder.com/600x300?text=IT+Tehnologia",
+                    "aiContext": "Суретте ноутбукпен жұмыс істеп отырған жас маман және әртүрлі құрылғылар бейнеленген."
+                },
+                {
+                    "type": 2,
+                    "title": "2-тапсырма: Эссе",
+                    "prompt": "«Интернеттің пайдасы мен зияны» тақырыбында эссе жазыңыз (150-200 сөз).",
+                    "aiContext": "Интернет пен әлеуметтік желілердің жастар өміріндегі рөлі туралы эссе"
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "reading": [
+                {
+                    "title": "Мәтін №1: Кітап оқудың маңызы",
+                    "text": "Кітап білім бұлағы. Кітап оқу адамның ой өрісін кеңейтеді. Сөздік қорды байытып, есте сақтау қабілетін жақсартады. Кітапханаға бару жақсы әдет. Онда мыңдаған түрлі шығармалар бар. Ертегілер балаларды жақсылыққа үйретеді. Тарихи романдар өткенді тануға көмектеседі. Қазіргі кезде аудиокітаптар да танымал. Бірақ қағаз кітаптың орны бөлек. Кітапты таза ұстау керек. Оның беттерін жыртуға болмайды. Үйдегі кітап сөресі отбасының мәдениетін көрсетеді. Жақсы кітап сенімді дос сияқты. Ол саған дұрыс жол көрсетеді. Күн сайын кем дегенде жиырма минут кітап оқыңыз.",
+                    "questions": [
+                        { "id": "t5_r_1", "text": "Кітап ненің бұлағы?", "options": ["Білімнің", "Судың", "Мұнайдың", "Алтынның"], "correct": "Білімнің" },
+                        { "id": "t5_r_2", "text": "Кітап нені кеңейтеді?", "options": ["Ой өрісті", "Даланы", "Үйді", "Терезені"], "correct": "Ой өрісті" },
+                        { "id": "t5_r_3", "text": "Нені байытады?", "options": ["Сөздік қорды", "Қалтаны", "Үйді", "Қорапты"], "correct": "Сөздік қорды" },
+                        { "id": "t5_r_4", "text": "Қайда бару жақсы әдет?", "options": ["Кітапханаға", "Дүкенге", "Базарға", "Көшеге"], "correct": "Кітапханаға" },
+                        { "id": "t5_r_5", "text": "Онда не көп?", "options": ["Шығармалар", "Киімдер", "Ойыншықтар", "Тамақтар"], "correct": "Шығармалар" },
+                        { "id": "t5_r_6", "text": "Ертегілер неге үйретеді?", "options": ["Жақсылыққа", "Жамандыққа", "Қорқақтыққа", "Жалқаулыққа"], "correct": "Жақсылыққа" },
+                        { "id": "t5_r_7", "text": "Тарихи романдар не үшін керек?", "options": ["Өткенді тануға", "Ұйықтауға", "Ойнауға", "Күлуге"], "correct": "Өткенді тануға" },
+                        { "id": "t5_r_8", "text": "Қазір қандай кітаптар танымал?", "options": ["Аудиокітаптар", "Жыртық кітаптар", "Тас кітаптар", "Бос кітаптар"], "correct": "Аудиокітаптар" },
+                        { "id": "t5_r_9", "text": "Қай кітаптың орны бөлек?", "options": ["Қағаз", "Темір", "Ағаш", "Пластик"], "correct": "Қағаз" },
+                        { "id": "t5_r_10", "text": "Кітапты қалай ұстау керек?", "options": ["Таза", "Лас", "Сулы", "Жыртық"], "correct": "Таза" },
+                        { "id": "t5_r_11", "text": "Нені жыртуға болмайды?", "options": ["Беттерін", "Мұқабасын", "Суртерін", "Бәрін"], "correct": "Беттерін" },
+                        { "id": "t5_r_12", "text": "Кітап сөресі нені көрсетеді?", "options": ["Мәдениетті", "Байлықты", "Жалқаулықты", "Қорқақтықты"], "correct": "Мәдениетті" },
+                        { "id": "t5_r_13", "text": "Жақсы кітап кім сияқты?", "options": ["Дос", "Дұшпан", "Көрші", "Жануар"], "correct": "Дос" },
+                        { "id": "t5_r_14", "text": "Ол не көрсетеді?", "options": ["Дұрыс жол", "Қате жол", "Орман жолы", "Су жолы"], "correct": "Дұрыс жол" },
+                        { "id": "t5_r_15", "text": "Күн сайын қанша уақыт оқу керек?", "options": ["Жиырма минут", "Бір минут", "Ешқашан", "Бес секунд"], "correct": "Жиырма минут" }
+                    ]
+                }
+            ],
+            "listening": [
+                {
+                    "title": "Аудиоматериал №5 (Кітапханадағы диалог)",
+                    "audio_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+                    "questions": [
+                        { "id": "t5_l_1", "text": "Оқиға қайда болып жатыр?", "options": ["Кітапханада", "Дүкенде", "Далада", "Ауруханада"], "correct": "Кітапханада" },
+                        { "id": "t5_l_2", "text": "Кімдер сөйлесуде?", "options": ["Оқырман мен кітапханашы", "Екі бала", "Дәрігерлер", "Полиция"], "correct": "Оқырман мен кітапханашы" },
+                        { "id": "t5_l_3", "text": "Оқырман не іздеп жүр?", "options": ["Кітап", "Қалам", "Сөмке", "Телефон"], "correct": "Кітап" },
+                        { "id": "t5_l_4", "text": "Қандай жанр керек?", "options": ["Тарих", "Фантастика", "Ертегі", "Өлең"], "correct": "Тарих" },
+                        { "id": "t5_l_5", "text": "Кітапханашы не ұсынды?", "options": ["Жаңа роман", "Ескі газет", "Журнал", "Сөздік"], "correct": "Жаңа роман" },
+                        { "id": "t5_l_6", "text": "Кітапты неше күнге береді?", "options": ["Он күнге", "Бір жылға", "Бір күнге", "Бермейді"], "correct": "Он күнге" },
+                        { "id": "t5_l_7", "text": "Уақытында әкелмесе не болады?", "options": ["Ескерту жасалады", "Сыйлық береді", "Ұйықтатады", "Қуады"], "correct": "Ескерту жасалады" },
+                        { "id": "t5_l_8", "text": "Оқу залында қалай отыру керек?", "options": ["Тыныш", "Шулап", "Ән айтып", "Билеп"], "correct": "Тыныш" },
+                        { "id": "t5_l_9", "text": "Электронды каталог бар ма?", "options": ["Иә", "Жоқ", "Бұзылған", "Білмеймін"], "correct": "Иә" },
+                        { "id": "t5_l_10", "text": "Оқырман билетін ашты ма?", "options": ["Иә", "Жоқ", "Ұмытып кетті", "Жоғалтып алды"], "correct": "Иә" },
+                        { "id": "t5_l_11", "text": "Кітапхана қашан жабылады?", "options": ["Кешке", "Түсте", "Таңертең", "Ешқашан"], "correct": "Кешке" },
+                        { "id": "t5_l_12", "text": "Демалыс күні қай күн?", "options": ["Жексенбі", "Дүйсенбі", "Жұма", "Сейсенбі"], "correct": "Жексенбі" },
+                        { "id": "t5_l_13", "text": "Студенттер жиі келе ме?", "options": ["Иә", "Жоқ", "Анда санда", "Ешқашан"], "correct": "Иә" },
+                        { "id": "t5_l_14", "text": "Wi-Fi бар ма?", "options": ["Иә бар", "Жоқ", "Ақылы", "Сөніп тұр"], "correct": "Иә бар" },
+                        { "id": "t5_l_15", "text": "Кітап қалың ба?", "options": ["Иә", "Жұқа", "Орташа", "Белгісіз"], "correct": "Иә" }
+                    ]
+                }
+            ],
+            "writing": [
+                {
+                    "type": 1,
+                    "title": "1-тапсырма: Сурет бойынша мазмұндау",
+                    "prompt": "Төмендегі суретке қарап, кітапханадағы көріністі сипаттаңыз (кемі 100 сөз).",
+                    "imageUrl": "https://via.placeholder.com/600x300?text=Kitaphana",
+                    "aiContext": "Суретте кітапханада кітап оқып отырған жастар бейнеленген."
+                },
+                {
+                    "type": 2,
+                    "title": "2-тапсырма: Эссе",
+                    "prompt": "«Кітап оқудың адам өміріндегі маңызы» тақырыбында эссе жазыңыз (150-200 сөз).",
+                    "aiContext": "Кітап оқу және білім алудың тұлға ретінде дамуға тигізетін әсері туралы эссе"
+                }
+            ]
+        }
+    ];
+        let currentTestData = null;
+        let startTime;
+        function renderTest(data) {
+            const rContainer = document.getElementById('reading-questions-container');
+            if (rContainer) {
+                document.getElementById('reading-text').style.display = 'none';
+                rContainer.innerHTML = '';
+                data.reading.forEach(block => {
+                    rContainer.innerHTML += `<div style="background: var(--surface-secondary); padding: 16px; border-radius: 8px; margin: 20px 0;"><h4 style="color: var(--primary); margin-bottom: 8px;">${block.title}</h4><p>${block.text}</p></div>`;
+                    block.questions.forEach((q, idx) => {
+                        rContainer.innerHTML += `<div style="margin-bottom: 24px;"><p style="font-weight: 500; margin-bottom: 12px;">${idx + 1}. ${q.text}</p><div class="options-list">${q.options.map((opt, i) => `<label class="option-label"><input type="radio" name="reading_q_${q.id}" value="${['A','B','C','D'][i]}"> <span><strong>${['A','B','C','D'][i]})</strong> ${opt}</span></label>`).join('')}</div></div>`;
+                    });
+                });
+            }
+            const lContainer = document.getElementById('listening-questions-container');
+            if (lContainer) {
+                document.getElementById('listening-audio').style.display = 'none';
+                lContainer.innerHTML = '';
+                data.listening.forEach(block => {
+                    lContainer.innerHTML += `<div style="margin: 20px 0 10px 0;"><h4 style="color: var(--primary); margin-bottom: 8px;">${block.title}</h4><audio controls style="width: 100%;"><source src="${block.audio_url}" type="audio/mpeg"></audio></div>`;
+                    block.questions.forEach((q, idx) => {
+                        lContainer.innerHTML += `<div style="margin-bottom: 24px;"><p style="font-weight: 500; margin-bottom: 12px;">${idx + 1}. ${q.text}</p><div class="options-list">${q.options.map((opt, i) => `<label class="option-label"><input type="radio" name="listening_q_${q.id}" value="${['A','B','C','D'][i]}"> <span><strong>${['A','B','C','D'][i]})</strong> ${opt}</span></label>`).join('')}</div></div>`;
+                    });
+                });
+            }
+            const wContainer = document.getElementById('writing-tasks-container');
+            if (wContainer) {
+                let writingHtml = "";
+                data.writing.forEach((task, index) => {
+                    const imgHtml = task.imageUrl 
+                        ? `<div style="text-align: center; margin: 15px 0;">
+                               <img src="${task.imageUrl}" alt="Тапсырма суреті" style="max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid var(--border);">
+                           </div>` 
+                        : "";
+                    writingHtml += `
+                        <div style="margin-bottom: 30px;">
+                            <p style="margin: 16px 0; color: var(--text-main);"><strong>${task.title}:</strong> <span>${task.prompt}</span></p>
+                            
+                            ${imgHtml} <textarea id="writing-textarea-${index + 1}" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; resize: none; background: var(--surface); color: var(--text-main);" placeholder="Осында жазыңыз..."></textarea>
+                        </div>
+                    `;
+                });
+                wContainer.innerHTML = writingHtml;
+            }
+        }
+        function loadMockTest() {
+            const localHistory = JSON.parse(localStorage.getItem('mock_test_history')) || [];
+            const completedIds = localHistory.map(test => test.testId);
+            const availableTests = mockTestDatabase.filter(test => !completedIds.includes(test.id));
+            if (availableTests.length === 0) {
+                alert("Құттықтаймыз! Сіз базадағы барлық вариантты тапсырып біттіңіз.");
+                window.location.href = 'index.html';
+                return;
+            }
+            const randomIndex = Math.floor(Math.random() * availableTests.length);
+            currentTestData = availableTests[randomIndex];
+            renderTest(currentTestData);
+            const infoList = document.querySelector('#section-0 ul');
+            if (infoList) {
+                infoList.innerHTML = `
+                    <li><strong>Аудирование:</strong> 20 минут (3 аудио, 20 сұрақ)</li>
+                    <li><strong>Чтение:</strong> 50 минут (4 мәтін, 40 сұрақ)</li>
+                    <li><strong>Письмо:</strong> 50 минут (2 тапсырма)</li>
+                `;
+            }
+        }
+        function startTest() { 
+            nextSection(1); 
+            startTime = new Date(); 
+        }
+        function nextSection(sectionIndex) {
+            const activeSection = document.querySelector('.test-section.active');
+            if (activeSection) activeSection.classList.remove('active');
+            const targetSection = document.getElementById(`section-${sectionIndex}`);
+            if (targetSection) targetSection.classList.add('active');
+            for (let i = 0; i < 4; i++) {
+                const indicator = document.getElementById(`indicator-${i}`);
+                if (!indicator) continue;
+                if (i < sectionIndex) { 
+                    indicator.classList.remove('active'); 
+                    indicator.classList.add('completed'); 
+                } else if (i === sectionIndex) { 
+                    indicator.classList.remove('completed'); 
+                    indicator.classList.add('active'); 
+                } else { 
+                    indicator.classList.remove('completed', 'active'); 
+                }
+            }
+            if (sectionIndex === 1) startTimer(50, 2); 
+            else if (sectionIndex === 2) startTimer(20, 3);
+            else if (sectionIndex === 3) startTimer(50, 4); 
+            else stopTimer();
+        }
+        function calculateLevel(score, thresholds) {
+            if (score >= thresholds.C1) return { lvl: 'C1', weight: 5 };
+            if (score >= thresholds.B2) return { lvl: 'B2', weight: 4 };
+            if (score >= thresholds.B1) return { lvl: 'B1', weight: 3 };
+            if (score >= thresholds.A2) return { lvl: 'A2', weight: 2 };
+            if (score >= thresholds.A1) return { lvl: 'A1', weight: 1 };
+            return { lvl: 'Сәтсіз', weight: 0 };
+        }
+        async function finishTest() {
+            stopTimer();
+            const finishBtn = document.getElementById('finish-btn');
+            let originalText = "";
+            if (finishBtn) {
+                originalText = finishBtn.innerText;
+                finishBtn.disabled = true;
+                finishBtn.innerText = "Жауаптар есептелуде... ⏳";
+            }
+            let readScore = 0, listScore = 0;
+            if (currentTestData && currentTestData.reading) {
+                currentTestData.reading.forEach(block => {
+                    block.questions.forEach(q => {
+                        const selected = document.querySelector(`input[name="reading_q_${q.id}"]:checked`);
+                        if (selected && selected.value === q.correct) readScore++; 
+                    });
+                });
+            }
+            if (currentTestData && currentTestData.listening) {
+                currentTestData.listening.forEach(block => {
+                    block.questions.forEach(q => {
+                        const selected = document.querySelector(`input[name="listening_q_${q.id}"]:checked`);
+                        if (selected && selected.value === q.correct) listScore++; 
+                    });
+                });
+            }
+            const textarea1 = document.getElementById('writing-textarea-1');
+            const textarea2 = document.getElementById('writing-textarea-2');
+            const text1 = textarea1 ? textarea1.value.trim() : "";
+            const text2 = textarea2 ? textarea2.value.trim() : "";
+            let writeScore = 0;
+            let aiFeedbackHtml = "";
+            const delay = ms => new Promise(res => setTimeout(res, ms));
+            const formatAiErrors = (errors) => {
+                if (!errors) return "Қателер табылмады.";
+                if (typeof errors === 'string') return errors;
+                if (Array.isArray(errors)) {
+                    if (errors.length === 0) return "Қателер табылмады.";
+                    return errors.map(err => {
+                        if (typeof err === 'object' && err !== null) {
+                            let msg = err.error || err.message || err.text || JSON.stringify(err);
+                            if (err.suggestion || err.fix) {
+                                msg += ` (Ұсыныс: ${err.suggestion || err.fix})`;
+                            }
+                            return msg;
+                        }
+                        return String(err);
+                    }).join('\n');
+                }
+                if (typeof errors === 'object') return JSON.stringify(errors, null, 2);
+                return String(errors);
+            };
+            try {
+                if (finishBtn) finishBtn.innerText = "ИИ: 1-тапсырма тексерілуде... 🤖";
+                const res1 = await fetch(`${API_URL}/check-essay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        text: text1 || "Жауап жоқ", 
+                        task_id: 1, 
+                        task_type: 1, 
+                        context: currentTestData.writing[0]?.aiContext || ""
+                    })
+                }).then(r => { if(!r.ok) throw new Error("API қатесі (1-тапсырма)"); return r.json(); });
+                if (finishBtn) finishBtn.innerText = "Google API демалуда (3 сек күту)... ⏳";
+                await delay(3000);
+                if (finishBtn) finishBtn.innerText = "ИИ: 2-тапсырма тексерілуде... 🤖";
+                const res2 = await fetch(`${API_URL}/check-essay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        text: text2 || "Жауап жоқ", 
+                        task_id: 2, 
+                        task_type: 2, 
+                        context: currentTestData.writing[1]?.aiContext || ""
+                    })
+                }).then(r => { if(!r.ok) throw new Error("API қатесі (2-тапсырма)"); return r.json(); });
+                writeScore = (res1.score || 0) + (res2.score || 0);
+                const formattedErrors1 = formatAiErrors(res1.errors);
+                const formattedErrors2 = formatAiErrors(res2.errors);
+                aiFeedbackHtml = `
+                    <div style="background: var(--surface-secondary); padding: 20px; border-radius: 8px; margin-top: 20px; text-align: left;">
+                        <h4 style="color: var(--primary); margin-bottom: 15px;">🤖 ИИ Талдауы (Жазылым бөлімі):</h4>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <strong>1-тапсырма (Сурет сипаттау): ${res1.score || 0} / 20 балл</strong>
+                            <p style="color: #28a745; margin: 5px 0; font-size: 14px;">✓ ${res1.good_points || "Жақсы тұстары белгіленбеді."}</p>
+                            <p style="color: #dc3545; margin: 5px 0; font-size: 14px; white-space: pre-wrap;">✗ ${formattedErrors1}</p>
+                        </div>
+                        
+                        <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
+                        
+                        <div>
+                            <strong>2-тапсырма (Аргументтік эссе): ${res2.score || 0} / 30 балл</strong>
+                            <p style="color: #28a745; margin: 5px 0; font-size: 14px;">✓ ${res2.good_points || "Жақсы тұстары белгіленбеді."}</p>
+                            <p style="color: #dc3545; margin: 5px 0; font-size: 14px; white-space: pre-wrap;">✗ ${formattedErrors2}</p>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("ИИ тексеру сәтсіз аяқталды:", error);
+                writeScore = 0;
+                aiFeedbackHtml = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: left;">
+                        ⚠️ Сервермен немесе ИИ-мен байланыс орнату мүмкін болмады. Жазылым блогы уақытша 0 балл болып есептелді.
+                    </div>
+                `;
+            }
+            const readLvl = calculateLevel(readScore, { C1: 32, B2: 24, B1: 20, A2: 16, A1: 12 });
+            const listLvl = calculateLevel(listScore, { C1: 16, B2: 12, B1: 10, A2: 8, A1: 6 });
+            const writeLvl = calculateLevel(writeScore, { C1: 40, B2: 30, B1: 25, A2: 20, A1: 15 });
+            const levelsArr = [readLvl, listLvl, writeLvl];
+            const minWeight = Math.min(...levelsArr.map(l => l.weight));
+            const overallLevel = levelsArr.find(l => l.weight === minWeight).lvl; 
+            const totalScore = readScore + listScore + writeScore;
+            const localHistory = JSON.parse(localStorage.getItem('mock_test_history')) || [];
+            const testNumber = localHistory.length + 1;
+            const d = new Date();
+            const pad = (n) => n < 10 ? '0' + n : n;
+            const formattedDate = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            const newResult = {
+                testId: currentTestData?.id || 0,
+                title: `Кешенді Mock-тест №${testNumber}`,
+                score: totalScore,
+                maxScore: 110,
+                level: overallLevel,
+                date: formattedDate,
+                breakdown: { 
+                    read: `${readScore}/40 (${readLvl.lvl})`, 
+                    list: `${listScore}/20 (${listLvl.lvl})`, 
+                    write: `${writeScore}/50 (${writeLvl.lvl})` 
+                }
+            };
+            localHistory.unshift(newResult);
+            localStorage.setItem('mock_test_history', JSON.stringify(localHistory));
+            const endTime = new Date();
+            const duration = Math.round((endTime - startTime) / 60000);
+            if (typeof saveActivityMinutes === 'function') saveActivityMinutes(duration);
+            const scoreDisplay = document.getElementById('score-display');
+            if (scoreDisplay) {
+                scoreDisplay.innerHTML = `
+                    <h3 style="color: var(--primary);">Жалпы ұпай: ${totalScore} / 110</h3>
+                    <h2 style="color: #28a745; margin: 10px 0;">Қорытынды деңгей: ${overallLevel}</h2>
+                    <ul style="list-style: none; padding: 0; margin-top: 20px; font-size: 16px; color: var(--text-main); text-align: left; display: inline-block;">
+                        <li style="margin-bottom: 8px;">📖 <strong>Оқылым:</strong> ${readScore}/40 балл — Деңгей: ${readLvl.lvl}</li>
+                        <li style="margin-bottom: 8px;">🎧 <strong>Тыңдалым:</strong> ${listScore}/20 балл — Деңгей: ${listLvl.lvl}</li>
+                        <li style="margin-bottom: 8px;">✍️ <strong>Жазылым:</strong> ${writeScore}/50 балл — Деңгей: ${writeLvl.lvl} <span style="font-size: 12px; color: var(--primary); font-weight: bold;">(ИИ бағалады 🤖)</span></li>
+                    </ul>
+                    ${aiFeedbackHtml}
+                `;
+            }
+            nextSection(4);
+            if (finishBtn) {
+                finishBtn.disabled = false;
+                finishBtn.innerText = originalText;
+            }
+        }
+        window.onload = () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const history = JSON.parse(localStorage.getItem('mock_test_history')) || [];
+            const container = document.querySelector('.content-container');
+            const limitMsg = document.getElementById('limitMessage');
+            if (history.length >= 1) {
+                const mockContainer = document.querySelector('.mock-container');
+                if (mockContainer) mockContainer.style.display = 'none';
+                const mockTitle = document.getElementById('mock-title');
+                if (mockTitle) mockTitle.style.display = 'none';
+                const limitMsg = document.getElementById('limitMessage');
+                if (limitMsg) limitMsg.style.display = 'block';
+            }
+            fetchUserProfile();
+            loadMockTest();
+        };
+    </script>
+</body>
+</html>

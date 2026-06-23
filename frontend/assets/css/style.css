@@ -1,0 +1,486 @@
+:root[data-theme="light"] {
+    --background: #f4f6f8;
+    --surface: #ffffff;
+    --surface-secondary: #f8f9fa;
+    --text-main: #1a1d20;
+    --text-muted: #6c757d;
+    --primary: #0d5c3a;
+    --primary-light: #e8f5e9;
+    --accent: #c5a059;
+    --border: #e2e8f0;
+    --shadow: rgba(0, 0, 0, 0.05);
+    --cell-bg-0: #ebedf0;
+    --cell-bg-1: #9be9a8;
+    --cell-bg-2: #40c463;
+    --cell-bg-3: #30a14e;
+    --cell-bg-4: #216e39;
+}
+
+:root[data-theme="dark"] {
+    --background: #0f111a;
+    --surface: #161925;
+    --surface-secondary: #1f2335;
+    --text-main: #f1f3f9;
+    --text-muted: #787f99;
+    --primary: #1b8a5a;
+    --primary-light: #163326;
+    --accent: #e5b869;
+    --border: #262b40;
+    --shadow: rgba(0, 0, 0, 0.2);
+    --cell-bg-0: #1b1f23;
+    --cell-bg-1: #0e4429;
+    --cell-bg-2: #006d32;
+    --cell-bg-3: #26a641;
+    --cell-bg-4: #39d353;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--text-main);
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Сайдбар навигации */
+.sidebar {
+    width: 260px;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+}
+
+.sidebar-logo {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+}
+
+.sidebar-logo::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--primary), var(--accent), transparent);
+}
+
+.sidebar-logo svg {
+    fill: var(--accent);
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 24px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-grow: 1;
+}
+
+.sidebar-item a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 8px;
+}
+
+.sidebar-item.active a, .sidebar-item a:hover {
+    color: var(--text-main);
+    background-color: var(--surface-secondary);
+}
+
+.sidebar-item.active a {
+    color: var(--primary);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding-left: 13px;
+}
+
+/* Главная рабочая область */
+.main-wrapper {
+    margin-left: 260px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Верхняя панель */
+.header {
+    height: 70px;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0px 40px;
+    gap: 24px;
+}
+
+.theme-toggle-btn {
+    background: none;
+    border: 1px solid var(--border);
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.theme-toggle-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.user-profile-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* Контентная зона */
+.content-container {
+    padding: 40px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.welcome-banner {
+    background-color: var(--surface);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px var(--shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Национальный узор на фоне карточки приветствия */
+.welcome-banner::before {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 150px;
+    height: 150px;
+    opacity: 0.08;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 0 L100 50 L50 100 L0 50 Z M50 20 L80 50 L50 80 L20 50 Z' fill='%23c5a059'/%3E%3C/svg%3E");
+    background-size: contain;
+}
+
+.welcome-banner h1 {
+    font-size: 28px;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+/* Сетка карточек модулей */
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.module-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px var(--shadow);
+    position: relative;
+}
+
+.module-card.featured {
+    border: 1px solid var(--accent);
+}
+
+.module-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.module-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.module-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background-color: var(--primary-light);
+    color: var(--primary);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.module-card.featured .module-badge {
+    background-color: #fff8e1;
+    color: #b78103;
+    border: 1px solid var(--accent);
+}
+
+.module-description {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 24px;
+    flex-grow: 1;
+}
+
+.module-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: #ffffff;
+    flex-grow: 1;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+.btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+}
+
+/* Секция активности (Календарь коммитов) */
+.activity-section {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.activity-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-main);
+}
+
+.activity-container {
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.activity-grid {
+    display: grid;
+    grid-template-flow: column;
+    grid-template-columns: repeat(53, 11px);
+    grid-template-rows: repeat(7, 11px);
+    gap: 3px;
+    width: max-content;
+}
+
+.activity-cell {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    background-color: var(--cell-bg-0);
+    position: relative;
+    cursor: pointer;
+}
+
+.activity-cell[data-level="1"] { background-color: var(--cell-bg-1); }
+.activity-cell[data-level="2"] { background-color: var(--cell-bg-2); }
+.activity-cell[data-level="3"] { background-color: var(--cell-bg-3); }
+.activity-cell[data-level="4"] { background-color: var(--cell-bg-4); }
+
+/* Всплывающие тултипы для ячеек */
+.activity-cell::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    background-color: #1a1d20;
+    color: #ffffff;
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity 0.15s ease;
+}
+
+.activity-cell:hover::after {
+    opacity: 1;
+}
+
+/* Модальные окна */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-window {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    padding: 32px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transform: translateY(20px);
+    transition: transform 0.2s ease;
+}
+
+.modal-overlay.open .modal-window {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.modal-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.modal-body {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-main);
+    margin-bottom: 24px;
+}
+
+/* --- СТИЛИ ДЛЯ ТЕЛЕФОНОВ --- */
+@media screen and (max-width: 768px) {
+  
+  /* 1. Делаем контейнеры вертикальными (если на ПК они в ряд) */
+  .container {
+    display: flex;
+    flex-direction: column; 
+    padding: 10px; /* Уменьшаем отступы по бокам */
+  }
+
+  /* 2. Адаптируем медиа, чтобы ничего не вылезало за экран */
+  img, video, iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 3. Делаем текст читабельным для пальцев и глаз */
+  body {
+    font-size: 16px; 
+    line-height: 1.5;
+  }
+
+  /* 4. Растягиваем кнопки на всю ширину для удобного нажатия */
+  .button {
+    width: 100%;
+    padding: 15px;
+  }
+
+  /* 5. Скрываем тяжелые или ненужные на телефоне элементы */
+  .desktop-only {
+    display: none;
+  }
+}

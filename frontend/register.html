@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="assets/images/icon.png">
+    <title>Тіркелу | Q-Prep </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<style>
+    .toast {
+        position: fixed;
+        top: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-80px);
+        background: white;
+        border-radius: 14px;
+        padding: 16px 24px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+        font-weight: 500;
+        color: #1a1a1a;
+        z-index: 9999;
+        transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+        opacity: 0;
+        min-width: 280px;
+        border-left: 4px solid #22c55e;
+    }
+    .toast.error { border-left-color: #ef4444; }
+    .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    .toast-icon { font-size: 20px; flex-shrink: 0; }
+    .toast-text { line-height: 1.4; }
+    .toast-title { font-weight: 700; font-size: 14px; color: #15803d; }
+    .toast.error .toast-title { color: #dc2626; }
+    .toast-sub { font-size: 13px; color: #6b7280; margin-top: 2px; }
+</style>
+
+<body class="bg-gray-50 flex items-center justify-center h-screen">
+
+    <!-- Toast уведомление -->
+    <div class="toast" id="toast">
+        <div class="toast-icon" id="toastIcon">✅</div>
+        <div class="toast-text">
+            <div class="toast-title" id="toastTitle"></div>
+            <div class="toast-sub" id="toastSub"></div>
+        </div>
+    </div>
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <h2 class="text-3xl font-extrabold text-center text-blue-600 mb-2">Q-Prep</h2>
+        <p class="text-gray-500 text-center mb-6">Платформаға жаңа аккаунт ашу</p>
+
+        <form id="registerForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Толық атыңыз</label>
+                <input type="text" id="fullName" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 font-sans">Электронды пошта (Email)</label>
+                <input type="email" id="email" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Құпиясөз</label>
+                <input type="password" id="password" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
+                Тіркелу
+            </button>
+        </form>
+
+        <p class="text-sm text-center text-gray-600 mt-6">
+            Аккаунтыңыз бар ма? <a href="login.html" class="text-blue-600 hover:underline font-semibold">Жүйеге кіру</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, full_name: fullName })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('success', 'Сәтті тіркелдіңіз!', 'Жүйеге кіру бетіне өтуде...');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                } else {
+                    showToast('error', 'Тіркелу қатесі', result.detail || 'Тіркелу кезінде қате кетті.');
+                }
+            } catch (error) {
+                console.error('Қате:', error);
+                showToast('error', 'Байланыс үзілді', 'Сервер жауап бермеді.');
+            }
+        });
+
+        function showToast(type, title, sub) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastIcon').textContent  = type === 'success' ? '✅' : '❌';
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastSub').textContent   = sub;
+            toast.className = 'toast' + (type === 'error' ? ' error' : '');
+            toast.offsetHeight;
+            toast.classList.add('show');
+            if (type === 'error') {
+                setTimeout(() => toast.classList.remove('show'), 3500);
+            }
+        }
+    </script>
+</body>
+</html>

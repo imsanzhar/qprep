@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="kk" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оқылым | Q-prep</title>
+    <link rel="icon" type="image/jpeg" href="assets/images/icon.png">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .simulator-container {
+            display: none;
+            gap: 24px;
+            height: calc(100vh - 180px);
+        }
+        .pane {
+            flex: 1;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .text-content {
+            font-size: 18px;
+            line-height: 1.8;
+            color: var(--text-main);
+        }
+        .question-block {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .question-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .option-label:hover {
+            background-color: var(--surface-secondary);
+        }
+        input[type="radio"] { accent-color: var(--primary); transform: scale(1.2); }
+        
+        .option-label.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .option-label.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        [data-theme="dark"] .option-label.correct { background-color: #0e4429; border-color: #28a745; color: #d4edda; }
+        [data-theme="dark"] .option-label.wrong { background-color: #4a1920; border-color: #dc3545; color: #f8d7da; }
+        
+        .explanation-box {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: var(--surface);
+            border: 1px solid var(--accent);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow);
+            z-index: 1000;
+            display: none;
+            min-width: 200px;
+        }
+        .tooltip-title { font-weight: bold; color: var(--primary); margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+        .tooltip-text { font-size: 14px; color: var(--text-main); margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px 10px 16px; text-align: center; width: 100%; box-sizing: border-box; height: auto; min-height: 120px; border-bottom: 1px solid var(--border);">
+            <img src="assets/images/icon.png" alt="Q-prep" style="width: 56px; height: 64px; object-fit: contain; flex-shrink: 0;">
+            <span style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-muted); line-height: 1.3;">
+                ҚАЗТЕСТ-КЕ ДАЙЫНДАЙТЫН ИНТЕРАКТИВТІ ПЛАТФОРМА
+            </span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a href="index.html"><span>Басты бет</span></a></li>
+            <li class="sidebar-item active"><a href="reading.html"><span>Оқылым</span></a></li>
+            <li class="sidebar-item"><a href="listening.html"><span>Тыңдалым</span></a></li>
+            <li class="sidebar-item"><a href="writing.html"><span>Жазылым</span></a></li>
+            <li class="sidebar-item"><a href="speaking.html"><span>Айтылым</span></a></li>
+            <li class="sidebar-item"><a href="mock.html"><span>Кешенді тестілеу</span></a></li>
+            <li class="sidebar-item"><a href="vocabulary.html">Сөздік қоры</a></li>
+        </ul>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="header">
+            <button class="theme-toggle-btn" id="themeToggle"><svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.22" x2="5.64" y2="17.84"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></button>
+            
+            <div class="user-profile" id="userProfileBtn" style="position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <div class="avatar" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; overflow: hidden;">
+                    <span id="avatar-letter">А</span>
+                    <img id="header-avatar-img" src="" alt="" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                </div>
+                <span id="user-display-name" style="font-weight: 500;">Пайдаланушы</span>
+                
+                <div id="profileDropdown" class="dropdown-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px; z-index: 100;">
+                    <ul style="list-style: none; padding: 10px 0; margin: 0;">
+                        <li>
+                            <a href="profile.html" style="display: block; padding: 10px 20px; color: var(--text-main); text-decoration: none; transition: 0.2s;">👤 Жеке кабинет</a>
+                        </li>
+                        <hr style="border-top: 1px solid var(--border); margin: 5px 0;">
+                        <li>
+                            <a href="#" onclick="logout()" style="display: block; padding: 10px 20px; color: #dc3545; text-decoration: none; transition: 0.2s;">🚪 Шығу</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-container">
+            
+            <div id="materialsScreen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="color: var(--primary);">Қолжетімді мәтіндер</h2>
+                </div>
+                <div class="modules-grid" id="materialsList">
+                    </div>
+            </div>
+
+            <div id="simulatorScreen" class="simulator-container">
+                <div class="pane">
+                    <button class="btn btn-secondary" style="margin-bottom: 20px;" onclick="closeSimulator()">← Артқа қайту</button>
+                    <h3 id="simTitle" style="color: var(--primary); margin-bottom: 16px;"></h3>
+                    <div id="simText" class="text-content"></div>
+                </div>
+
+                <div class="pane" style="position: relative;">
+                    <h3 style="margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">Сұрақтар</h3>
+                    
+                    <div id="resultBanner" style="display: none; background: var(--primary); color: white; padding: 16px; border-radius: 8px; margin-bottom: 24px; text-align: center; font-size: 18px; font-weight: bold;"></div>
+
+                    <form id="questionsForm">
+                        <div id="questionsContainer"></div>
+    
+                        <button type="submit"
+                            class="btn btn-primary"
+                            style="width: 100%; padding: 14px; font-size: 16px; margin-top: 20px;"
+                            id="submitBtn">Жауаптарды жіберу (Отправить)
+                    </button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="translationTooltip" class="tooltip">
+                <div class="tooltip-title" id="ttWord">Сөз</div>
+                <div class="tooltip-text">🇷🇺 <span id="ttRu">...</span></div>
+                <div class="tooltip-text">🇬🇧 <span id="ttEn">...</span></div>
+                <button class="btn btn-secondary" style="width: 100%; padding: 6px; margin-top: 8px; font-size: 12px;">Сөздікке қосу</button>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/v1";
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        function applyHeaderProfile() {
+            const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+            const nameEl = document.getElementById('user-display-name');
+            const letterEl = document.getElementById('avatar-letter');
+            const imgEl = document.getElementById('header-avatar-img');
+            if (nameEl && profile.firstName) nameEl.innerText = profile.firstName;
+            if (letterEl && profile.firstName) letterEl.innerText = profile.firstName.charAt(0).toUpperCase();
+            if (imgEl) {
+                if (profile.avatar) {
+                    imgEl.src = profile.avatar;
+                    imgEl.style.display = 'block';
+                    if (letterEl) letterEl.style.display = 'none';
+                } else {
+                    imgEl.style.display = 'none';
+                    if (letterEl) letterEl.style.display = '';
+                }
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+                    const apiName = result.data.full_name;
+                    if (!profile.firstName && apiName) {
+                        profile.firstName = apiName.split(' ')[0];
+                        localStorage.setItem('user_profile', JSON.stringify(profile));
+                    }
+                    document.getElementById('welcome-name') && (document.getElementById('welcome-name').innerText = profile.firstName || apiName);
+                    applyHeaderProfile();
+                }
+            } catch (error) {
+                console.error('Профиль қатесі:', error);
+                applyHeaderProfile();
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+        function saveActivityMinutes(minutesSpent) {
+            if (minutesSpent < 1) minutesSpent = 1;
+            const activityLog = JSON.parse(localStorage.getItem('study_activity')) || {};
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            activityLog[dateStr] = (activityLog[dateStr] || 0) + minutesSpent;
+            localStorage.setItem('study_activity', JSON.stringify(activityLog));
+        }
+        function saveModuleResult(moduleType, score, maxScore) {
+            const history = JSON.parse(localStorage.getItem('module_history')) || [];
+            const today = new Date();
+            const pad = (n) => n < 10 ? '0' + n : n;
+            const dateStr = `${pad(today.getDate())}.${pad(today.getMonth() + 1)}.${today.getFullYear()} ${pad(today.getHours())}:${pad(today.getMinutes())}`;
+            
+            history.push({
+                type: moduleType,
+                score: score,
+                maxScore: maxScore,
+                date: dateStr
+            });
+            localStorage.setItem('module_history', JSON.stringify(history));
+        }
+        const LOCAL_MATERIALS = [
+            {
+                "id": 1,
+                "title": "Менің отбасым",
+                "level": "A1",
+                "word_count": 87,
+                "content": "Менің атым Арман. Мен жиырма жастамын. Мен студентпін. Біздің отбасымыз үлкен емес. Біз төрт адамбыз: әкем, анам, қарындасым және мен. Әкемнің аты Марат. Ол дәрігер болып жұмыс істейді. Анамның аты Сәуле. Ол мұғалім. Қарындасым мектепте оқиды. Оның аты Айгерім. Біз Алматы қаласында тұрамыз. Демалыс күндері біз саябаққа барамыз. Біз бірге уақыт өткізгенді жақсы көреміз. Біздің үйде үлкен ит бар. Иттің аты Ақтөс. Ақтөс өте ақылды ит. Мен күнде таңертең сағат жетіде тұрамын. Таңғы ас ішемін. Сосын университетке барамын. Онда достарыммен кездесемін. Кешке үйде кітап оқимын.",
+                "questions": [
+                { "id": 101, "text": "Мәтіндегі баланың аты кім?", "options": { "A": "Марат", "B": "Арман", "C": "Берік", "D": "Серік" }, "correctAnswer": "B", "explanation": "Мәтінде оның аты Арман екені айтылған." },
+                { "id": 102, "text": "Арман неше жаста?", "options": { "A": "Оналты", "B": "Он сегіз", "C": "Жиырма", "D": "Жиырма екі" }, "correctAnswer": "C", "explanation": "Мәтінге сәйкес ол жиырма жаста." },
+                { "id": 103, "text": "Арман кім?", "options": { "A": "Дәрігер", "B": "Студент", "C": "Мұғалім", "D": "Оқушы" }, "correctAnswer": "B", "explanation": "Ол өзінің студент екенін айтады." },
+                { "id": 104, "text": "Отбасында неше адам бар?", "options": { "A": "Үш", "B": "Төрт", "C": "Бес", "D": "Алты" }, "correctAnswer": "B", "explanation": "Отбасында төрт адам бар екені жазылған." },
+                { "id": 105, "text": "Әкесінің аты кім?", "options": { "A": "Асан", "B": "Арман", "C": "Марат", "D": "Сәкен" }, "correctAnswer": "C", "explanation": "Мәтінде әкесінің аты Марат деп көрсетілген." },
+                { "id": 106, "text": "Әкесі кім болып жұмыс істейді?", "options": { "A": "Жүргізуші", "B": "Мұғалім", "C": "Дәрігер", "D": "Құрылысшы" }, "correctAnswer": "C", "explanation": "Әкесінің мамандығы дәрігер." },
+                { "id": 107, "text": "Анасының аты кім?", "options": { "A": "Сәуле", "B": "Айгерім", "C": "Алуа", "D": "Дана" }, "correctAnswer": "A", "explanation": "Анасының аты Сәуле екені мәтінде бар." },
+                { "id": 108, "text": "Анасының мамандығы қандай?", "options": { "A": "Дәрігер", "B": "Мұғалім", "C": "Аспаз", "D": "Сатушы" }, "correctAnswer": "B", "explanation": "Мәтін бойынша анасы мұғалім." },
+                { "id": 109, "text": "Қарындасының аты кім?", "options": { "A": "Сәуле", "B": "Айгерім", "C": "Айжан", "D": "Дина" }, "correctAnswer": "B", "explanation": "Қарындасының аты Айгерім." },
+                { "id": 110, "text": "Қарындасы қайда оқиды?", "options": { "A": "Университетте", "B": "Мектепте", "C": "Колледжде", "D": "Балабақшада" }, "correctAnswer": "B", "explanation": "Қарындасы мектепте оқитыны айтылған." },
+                { "id": 111, "text": "Олар қай қалада тұрады?", "options": { "A": "Астана", "B": "Шымкент", "C": "Алматы", "D": "Ақтау" }, "correctAnswer": "C", "explanation": "Отбасы Алматы қаласында тұрады." },
+                { "id": 112, "text": "Демалыс күндері олар қайда барады?", "options": { "A": "Ауылға", "B": "Киноға", "C": "Дүкенге", "D": "Саябаққа" }, "correctAnswer": "D", "explanation": "Олар демалыста саябаққа барады." },
+                { "id": 113, "text": "Үйде қандай үй жануары бар?", "options": { "A": "Мысық", "B": "Ит", "C": "Тотықұс", "D": "Балық" }, "correctAnswer": "B", "explanation": "Мәтінде үйде үлкен ит бар екені жазылған." },
+                { "id": 114, "text": "Иттің аты кім?", "options": { "A": "Ақтөс", "B": "Мойнақ", "C": "Бөрібасар", "D": "Құттыаяқ" }, "correctAnswer": "A", "explanation": "Иттің аты Ақтөс деп көрсетілген." },
+                { "id": 115, "text": "Арман таңертең сағат нешеде тұрады?", "options": { "A": "Алтыда", "B": "Жетіде", "C": "Сегізде", "D": "Тоғызда" }, "correctAnswer": "B", "explanation": "Ол сағат жетіде тұратынын айтады." }
+                ]
+            },
+            {
+                "id": 2,
+                "title": "Күз мезгілі",
+                "level": "A1",
+                "word_count": 82,
+                "content": "Күз келді. Күн салқындай бастады. Ағаштардың жапырақтары сарғайды. Қыркүйек, қазан, қараша күз айлары. Қыркүйекте оқушылар мектепке барады. Адамдар жылы киімдер киеді. Күзде жаңбыр жиі жауады. Диқандар егін жинайды. Бақтарда алма, алмұрт, жүзім піседі. Күз өте әдемі мезгіл. Мен күздi жақсы көремiн. Күзде құстар жылы жаққа ұшып кетеді. Орман іші сары, қызыл түске боялады. Балалар далада ойнайды. Олар жапырақтардан гүлшоғын жасайды. Ауа райы бұлтты болады. Күзгі табиғат көздің жауын алады.",
+                "questions": [
+                { "id": 201, "text": "Мәтін қай жыл мезгілі туралы?", "options": { "A": "Қыс", "B": "Көктем", "C": "Жаз", "D": "Күз" }, "correctAnswer": "D", "explanation": "Мәтін күз мезгіліне арналған." },
+                { "id": 202, "text": "Күзде күн қандай болады?", "options": { "A": "Ыстық", "B": "Салқын", "C": "Жылы", "D": "Ашық" }, "correctAnswer": "B", "explanation": "Мәтінде күн салқындай бастайды делінген." },
+                { "id": 203, "text": "Жапырақтардың түсі қандай болады?", "options": { "A": "Жасыл", "B": "Сары", "C": "Көк", "D": "Қара" }, "correctAnswer": "B", "explanation": "Ағаштардың жапырақтары сарғаяды." },
+                { "id": 204, "text": "Төмендегілердің қайсысы күз айы?", "options": { "A": "Мамыр", "B": "Шілде", "C": "Қазан", "D": "Ақпан" }, "correctAnswer": "C", "explanation": "Қазан айы күз айларының бірі." },
+                { "id": 205, "text": "Оқушылар қашан мектепке барады?", "options": { "A": "Тамызда", "B": "Қыркүйекте", "C": "Қазанда", "D": "Қарашада" }, "correctAnswer": "B", "explanation": "Қыркүйекте оқушылар мектепке баратыны жазылған." },
+                { "id": 206, "text": "Адамдар қандай киім киеді?", "options": { "A": "Жұқа", "B": "Жылы", "C": "Қысқа", "D": "Жеңіл" }, "correctAnswer": "B", "explanation": "Адамдар жылы киімдер киетіні көрсетілген." },
+                { "id": 207, "text": "Күзде жиі не жауады?", "options": { "A": "Қар", "B": "Бұршақ", "C": "Жаңбыр", "D": "Шаң" }, "correctAnswer": "C", "explanation": "Мәтінде жаңбыр жиі жауатыны айтылған." },
+                { "id": 208, "text": "Диқандар не істейді?", "options": { "A": "Тұқым себеді", "B": "Егін жинайды", "C": "Шөп шабады", "D": "Жер жыртады" }, "correctAnswer": "B", "explanation": "Диқандар егін жинайды." },
+                { "id": 209, "text": "Бақтарда қандай жеміс піседі?", "options": { "A": "Алма", "B": "Шие", "C": "Өрік", "D": "Құлпынай" }, "correctAnswer": "A", "explanation": "Алма, алмұрт, жүзім пісетіні айтылған." },
+                { "id": 210, "text": "Автор күш мезгілін қалай бағалайды?", "options": { "A": "Өте суық", "B": "Өте әдемі", "C": "Өте қысқа", "D": "Өте ыстық" }, "correctAnswer": "B", "explanation": "Автор күзді өте әдемі мезгіл дейді." },
+                { "id": 211, "text": "Құстар қайда ұшып кетеді?", "options": { "A": "Солтүстікке", "B": "Орманға", "C": "Жылы жаққа", "D": "Тауға" }, "correctAnswer": "C", "explanation": "Құстар жылы жаққа ұшатыны жазылған." },
+                { "id": 212, "text": "Орман іші қандай түстерге боялады?", "options": { "A": "Сары, қызыл", "B": "Жасыл, көк", "C": "Ақ, қара", "D": "Қоңыр, сұр" }, "correctAnswer": "A", "explanation": "Орман іші сары, қызыл түске боялатыны айтылған." },
+                { "id": 213, "text": "Балалар далада не істейді?", "options": { "A": "Сабақ оқиды", "B": "Ойнайды", "C": "Ұйықтайды", "D": "Ағаш отырғызады" }, "correctAnswer": "B", "explanation": "Балалар далада ойнайтыны көрсетілген." },
+                { "id": 214, "text": "Балалар гүлшоғын неден жасайды?", "options": { "A": "Гүлдерден", "B": "Шөптен", "C": "Жапырақтардан", "D": "Қағаздан" }, "correctAnswer": "C", "explanation": "Олар жапырақтардан гүлшоғын жасайды." },
+                { "id": 215, "text": "Күзде ауа райы көбіне қандай болады?", "options": { "A": "Ашық", "B": "Ыстық", "C": "Бұлтты", "D": "Желсіз" }, "correctAnswer": "C", "explanation": "Мәтінде ауа райы бұлтты болады деп жазылған." }
+                ]
+            },
+            {
+                "id": 3,
+                "title": "Менің досым",
+                "level": "A1",
+                "word_count": 82,
+                "content": "Менің ең жақын досым бар. Оның аты Берік. Ол он тоғыз жаста. Біз бірге мектепте оқыдық. Қазір ол университетте оқиды. Ол болашақ инженер. Берік спортты жақсы көреді. Ол футбол ойнайды. Біз әр сенбі сайын стадионға барамыз. Беріктің мінезі өте жақсы. Ол ақылды және мейірімді. Оның бір інісі бар. Інісінің аты Серік. Олардың отбасы тату. Берік маған үнемі көмектеседі. Мен досымды мақтан тұтамын. Біз бос уақытта кино көреміз. Оған комедия жанры ұнайды.",
+                "questions": [
+                { "id": 301, "text": "Мәтінде кім туралы айтылған?", "options": { "A": "Мұғалім", "B": "Көрші", "C": "Жақын дос", "D": "Туыс" }, "correctAnswer": "C", "explanation": "Мәтін ең жақын дос туралы." },
+                { "id": 302, "text": "Досының аты кім?", "options": { "A": "Серік", "B": "Берік", "C": "Ерік", "D": "Мәлік" }, "correctAnswer": "B", "explanation": "Досының аты Берік." },
+                { "id": 303, "text": "Берік неше жаста?", "options": { "A": "Он жеті", "B": "Он сегіз", "C": "Он тоғыз", "D": "Жиырма" }, "correctAnswer": "C", "explanation": "Мәтінде ол он тоғыз жаста екені айтылған." },
+                { "id": 304, "text": "Олар бұрын қайда бірге оқыған?", "options": { "A": "Балабақшада", "B": "Мектепте", "C": "Колледжде", "D": "Университетте" }, "correctAnswer": "B", "explanation": "Біз бірге мектепте оқыдық деп жазылған." },
+                { "id": 305, "text": "Қазір Берік қайда оқиды?", "options": { "A": "Мектепте", "B": "Академияда", "C": "Университетте", "D": "Институтта" }, "correctAnswer": "C", "explanation": "Қазір ол университетте оқитыны көрсетілген." },
+                { "id": 306, "text": "Беріктің болашақ мамандығы кім?", "options": { "A": "Дәрігер", "B": "Инженер", "C": "Құрылысшы", "D": "Мұғалім" }, "correctAnswer": "B", "explanation": "Ол болашақ инженер екені айтылған." },
+                { "id": 307, "text": "Ол нені жақсы көреді?", "options": { "A": "Спортты", "B": "Музыканы", "C": "Сурет салуды", "D": "Кітап оқуды" }, "correctAnswer": "A", "explanation": "Мәтінде Берік спортты жақсы көреді делінген." },
+                { "id": 308, "text": "Берік қандай ойын ойнайды?", "options": { "A": "Теннис", "B": "Баскетбол", "C": "Волейбол", "D": "Футбол" }, "correctAnswer": "D", "explanation": "Ол футбол ойнайтыны айтылған." },
+                { "id": 309, "text": "Олар әр сенбі сайын қайда барады?", "options": { "A": "Киноға", "B": "Саябаққа", "C": "Стадионға", "D": "Көлге" }, "correctAnswer": "C", "explanation": "Сенбі сайын стадионға баратыны жазылған." },
+                { "id": 310, "text": "Беріктің мінезі қандай?", "options": { "A": "Жаман", "B": "Жақсы", "C": "Ашушаң", "D": "Тұйық" }, "correctAnswer": "B", "explanation": "Беріктің мінезі өте жақсы екені айтылған." },
+                { "id": 311, "text": "Беріктің қандай қасиеттері бар?", "options": { "A": "Ақылды және мейірімді", "B": "Жалқау және ұйқыбас", "C": "Қатал және суық", "D": "Сараң және қызғаншақ" }, "correctAnswer": "A", "explanation": "Ол ақылды және мейірімді деп көрсетілген." },
+                { "id": 312, "text": "Беріктің кімі бар?", "options": { "A": "Ағасы", "B": "Інісі", "C": "Қарындасы", "D": "Әпкесі" }, "correctAnswer": "B", "explanation": "Оның бір інісі бар екені жазылған." },
+                { "id": 313, "text": "Інісінің аты кім?", "options": { "A": "Берік", "B": "Серік", "C": "Ерік", "D": "Төрік" }, "correctAnswer": "B", "explanation": "Інісінің аты Серік." },
+                { "id": 314, "text": "Олар бос уақытта не істейді?", "options": { "A": "Кітап оқиды", "B": "Ас пісіреді", "C": "Кино көреді", "D": "Ұйықтайды" }, "correctAnswer": "C", "explanation": "Бос уақытта кино көретіні айтылған." },
+                { "id": 315, "text": "Берікке киноның қандай жанры ұнайды?", "options": { "A": "Драма", "B": "Комедия", "C": "Ужас", "D": "Детектив" }, "correctAnswer": "B", "explanation": "Оған комедия жанры ұнайды." }
+                ]
+            },
+            {
+                "id": 4,
+                "title": "Дүкенде",
+                "level": "A2",
+                "word_count": 87,
+                "content": "Бүгін мен азық-түлік дүкеніне бардым. Дүкен біздің үйдің жанында орналасқан. Ол таңғы сағат сегізде ашылады. Дүкенде нан, сүт, жұмыртқа, ет сатылады. Мен алдымен екі нан алдым. Содан кейін сүт бөліміне бардым. Ол жерден бір литр сүт және ірімшік таңдадым. Көкөністер бөлімінде картоп, сәбіз, пияз бар екен. Мен үш келі картоп алдым. Алма мен банан да сатып алдым. Кассаға барып, ақша төледім. Сатушы маған чек берді. Мен өнімдерді сөмкеге салдым. Дүкен өте таза әрі жарық. Маған бұл дүкен ұнайды.",
+                "questions": [
+                { "id": 401, "text": "Кейіпкер қандай дүкенге барды?", "options": { "A": "Киім дүкені", "B": "Азық-түлік дүкені", "C": "Жиһаз дүкені", "D": "Кітап дүкені" }, "correctAnswer": "B", "explanation": "Мәтінде азық-түлік дүкені жазылған." },
+                { "id": 402, "text": "Дүкен қайда орналасқан?", "options": { "A": "Орталықта", "B": "Мектеп жанында", "C": "Үйдің жанында", "D": "Саябақта" }, "correctAnswer": "C", "explanation": "Дүкен үйдің жанында орналасқан." },
+                { "id": 403, "text": "Дүкен сағат нешеде ашылады?", "options": { "A": "Жетіде", "B": "Сегізде", "C": "Тоғызда", "D": "Онда" }, "correctAnswer": "B", "explanation": "Таңғы сағат сегізде ашылатыны айтылған." },
+                { "id": 404, "text": "Кейіпкер неше нан алды?", "options": { "A": "Бір", "B": "Екі", "C": "Үш", "D": "Төрт" }, "correctAnswer": "B", "explanation": "Мәтінде екі нан алдым делінген." },
+                { "id": 405, "text": "Ол қанша сүт алды?", "options": { "A": "Жарты литр", "B": "Бір литр", "C": "Екі литр", "D": "Үш литр" }, "correctAnswer": "B", "explanation": "Бір литр сүт таңдағаны жазылған." },
+                { "id": 406, "text": "Сүт бөлімінен сүттен басқа не алды?", "options": { "A": "Айран", "B": "Қаймақ", "C": "Сарымай", "D": "Ірімшік" }, "correctAnswer": "D", "explanation": "Ол ірімшік таңдағанын айтты." },
+                { "id": 407, "text": "Көкөністер бөлімінде нелер бар екен?", "options": { "A": "Картоп, сәбіз, пияз", "B": "Қызанақ, қияр, бұрыш", "C": "Орамжапырақ, сарымсақ", "D": "Асқабақ, баялды" }, "correctAnswer": "A", "explanation": "Мәтінде картоп, сәбіз, пияз бар екені айтылған." },
+                { "id": 408, "text": "Ол қанша картоп алды?", "options": { "A": "Бір келі", "B": "Екі келі", "C": "Үш келі", "D": "Төрт келі" }, "correctAnswer": "C", "explanation": "Ол үш келі картоп алғанын жазады." },
+                { "id": 409, "text": "Ол қандай жемістер сатып алды?", "options": { "A": "Алмұрт пен өрік", "B": "Алма мен банан", "C": "Жүзім мен шабдалы", "D": "Апельсин мен лимон" }, "correctAnswer": "B", "explanation": "Алма мен банан сатып алғаны айтылған." },
+                { "id": 410, "text": "Ол ақшаны қайда төледі?", "options": { "A": "Банкте", "B": "Кассада", "C": "Далада", "D": "Үйде" }, "correctAnswer": "B", "explanation": "Кассаға барып ақша төлегені жазылған." },
+                { "id": 411, "text": "Сатушы оған не берді?", "options": { "A": "Кәмпит", "B": "Сыйлық", "C": "Чек", "D": "Қағаз" }, "correctAnswer": "C", "explanation": "Сатушы маған чек берді дейді." },
+                { "id": 412, "text": "Ол өнімдерді қайда салды?", "options": { "A": "Қалтаға", "B": "Сөмкеге", "C": "Қорапқа", "D": "Көлікке" }, "correctAnswer": "B", "explanation": "Өнімдерді сөмкеге салғаны айтылған." },
+                { "id": 413, "text": "Дүкеннің іші қандай?", "options": { "A": "Лас әрі қараңғы", "B": "Таза әрі жарық", "C": "Кішкентай", "D": "Тар" }, "correctAnswer": "B", "explanation": "Дүкен өте таза әрі жарық деп жазылған." },
+                { "id": 414, "text": "Кейіпкерге дүкен ұнай ма?", "options": { "A": "Иә", "B": "Жоқ", "C": "Білмеймін", "D": "Мәтінде айтылмаған" }, "correctAnswer": "A", "explanation": "Маған бұл дүкен ұнайды деген сөйлем бар." },
+                { "id": 415, "text": "Мәтінде төмендегілердің қайсысы айтылмаған?", "options": { "A": "Жұмыртқа сатылатыны", "B": "Сүт бөлімі", "C": "Дүкеннің жабылу уақыты", "D": "Кассаға барғаны" }, "correctAnswer": "C", "explanation": "Дүкеннің жабылу уақыты мәтінде жоқ." }
+                ]
+            },
+            {
+                "id": 5,
+                "title": "Астана қаласы",
+                "level": "A2",
+                "word_count": 87,
+                "content": "Астана Қазақстанның бас қаласы болып саналады. Қала Есіл өзенінің жағасында орналасқан. Астана өте әдемі және жаңа қала. Мұнда биік ғимараттар көп. Бәйтерек монументі қаланың символы. Оның биіктігі тоқсан жеті метр. Астанада үлкен саябақтар, мұражайлар мен театрлар бар. Хан Шатыр үлкен ойын-сауық орталығы. Қала халқының саны жыл сайын өсіп келеді. Қыста Астанада ауа райы өте суық болады. Жазда күн ыстық. Түнде қала шамдары жарқырап, өте әдемі көрінеді. Мен Астананы жақсы көремін. Мұнда көліктер де көп.",
+                "questions": [
+                { "id": 501, "text": "Мәтінде қай қала туралы айтылады?", "options": { "A": "Алматы", "B": "Шымкент", "C": "Астана", "D": "Атырау" }, "correctAnswer": "C", "explanation": "Мәтін Астана қаласына арналған." },
+                { "id": 502, "text": "Астана қандай қала болып саналады?", "options": { "A": "Кішкентай қала", "B": "Бас қала", "C": "Көне қала", "D": "Ауыл" }, "correctAnswer": "B", "explanation": "Қазақстанның бас қаласы екені айтылған." },
+                { "id": 503, "text": "Қала қай өзеннің жағасында орналасқан?", "options": { "A": "Жайық", "B": "Сырдария", "C": "Ертіс", "D": "Есіл" }, "correctAnswer": "D", "explanation": "Қала Есіл өзенінің жағасында орналасқан." },
+                { "id": 504, "text": "Астана қандай қала?", "options": { "A": "Көне және лас", "B": "Әдемі және жаңа", "C": "Тар және кіші", "D": "Қараңғы" }, "correctAnswer": "B", "explanation": "Астана өте әдемі және жаңа қала делінген." },
+                { "id": 505, "text": "Мұнда қандай ғимараттар көп?", "options": { "A": "Ескі", "B": "Ағаш", "C": "Биік", "D": "Аласа" }, "correctAnswer": "C", "explanation": "Биік ғимараттар көп екені айтылған." },
+                { "id": 506, "text": "Қаланың символы не?", "options": { "A": "Бәйтерек", "B": "Ақорда", "C": "Пирамида", "D": "Хан Шатыр" }, "correctAnswer": "A", "explanation": "Бәйтерек монументі қаланың символы." },
+                { "id": 507, "text": "Бәйтеректің биіктігі неше метр?", "options": { "A": "Сексен", "B": "Тоқсан", "C": "Тоқсан жеті", "D": "Жүз" }, "correctAnswer": "C", "explanation": "Оның биіктігі тоқсан жеті метр." },
+                { "id": 508, "text": "Мәтінде қандай орталық аталған?", "options": { "A": "Мега", "B": "Хан Шатыр", "C": "Керуен", "D": "Азия Парк" }, "correctAnswer": "B", "explanation": "Хан Шатыр үлкен ойын-сауық орталығы ретінде аталған." },
+                { "id": 509, "text": "Қала халқының саны не істеп келеді?", "options": { "A": "Азайып келеді", "B": "Өсіп келеді", "C": "Өзгермейді", "D": "Көшіп жатыр" }, "correctAnswer": "B", "explanation": "Қала халқының саны жыл сайын өсіп келеді." },
+                { "id": 510, "text": "Астанада қыста ауа райы қандай болады?", "options": { "A": "Жылы", "B": "Ыстық", "C": "Өте суық", "D": "Жаңбырлы" }, "correctAnswer": "C", "explanation": "Қыста ауа райы өте суық болатыны жазылған." },
+                { "id": 511, "text": "Жазда күн қандай болады?", "options": { "A": "Суық", "B": "Бұлтты", "C": "Ыстық", "D": "Қарлы" }, "correctAnswer": "C", "explanation": "Жазда күн ыстық болатыны айтылған." },
+                { "id": 512, "text": "Түнде қала қалай көрінеді?", "options": { "A": "Қараңғы", "B": "Қорқынышты", "C": "Өте әдемі", "D": "Көрінбейді" }, "correctAnswer": "C", "explanation": "Түнде шамдар жарқырап, өте әдемі көрінетіні жазылған." },
+                { "id": 513, "text": "Астанада нелер көп?", "options": { "A": "Ормандар", "B": "Таулар", "C": "Көліктер", "D": "Теңіздер" }, "correctAnswer": "C", "explanation": "Мұнда көліктер де көп екені айтылған." },
+                { "id": 514, "text": "Астанада тағы не бар?", "options": { "A": "Үлкен саябақтар", "B": "Биік таулар", "C": "Терең көлдер", "D": "Қалың ормандар" }, "correctAnswer": "A", "explanation": "Үлкен саябақтар, мұражайлар мен театрлар бар делінген." },
+                { "id": 515, "text": "Автор Астана туралы не дейді?", "options": { "A": "Ол Астананы білмейді", "B": "Ол Астананы жақсы көреді", "C": "Оған Астана ұнамайды", "D": "Ол көшіп кеткісі келеді" }, "correctAnswer": "B", "explanation": "Автор Мен Астананы жақсы көремін деп жазған." }
+                ]
+            },
+            {
+                "id": 6,
+                "title": "Наурыз мейрамы",
+                "level": "A2",
+                "word_count": 87,
+                "content": "Наурыз көктем мерекесі болып табылады. Ол жиырма екінші наурызда тойланады. Бұл күні күн мен түн теңеледі. Адамдар бір-бірін құттықтайды. Көшелерде киіз үйлер тігіледі. Әйелдер наурыз көже пісіреді. Наурыз көжеге жеті түрлі тағам қосылады. Олар су, ет, тұз, бидай, айран және тағы басқалар. Мерекеде ұлттық ойындар ойналады. Мысалы қазақша күрес, тоғызқұмалақ, алтыбақан тебу. Жастар ән айтып, би билейді. Наурыз жаңа жылдың басы. Бұл күні барлығы жақсы тілектер айтады. Мейрам өте көңілді өтеді. Балалар да мәз болады.",
+                "questions": [
+                { "id": 601, "text": "Наурыз қандай мезгілде тойланады?", "options": { "A": "Қыс", "B": "Көктем", "C": "Жаз", "D": "Күз" }, "correctAnswer": "B", "explanation": "Наурыз көктем мерекесі екені жазылған." },
+                { "id": 602, "text": "Мереке қай күні тойланады?", "options": { "A": "Бірінші қаңтар", "B": "Сегізінші наурыз", "C": "Жиырма екінші наурыз", "D": "Жиырма бесінші қазан" }, "correctAnswer": "C", "explanation": "Жиырма екінші наурызда тойланатыны айтылған." },
+                { "id": 603, "text": "Бұл күні табиғатта қандай құбылыс болады?", "options": { "A": "Қар жауады", "B": "Күн мен түн теңеледі", "C": "Күн тұтылады", "D": "Ай толады" }, "correctAnswer": "B", "explanation": "Күн мен түн теңелетіні көрсетілген." },
+                { "id": 604, "text": "Көшелерде не тігіледі?", "options": { "A": "Шатырлар", "B": "Киіз үйлер", "C": "Үйлер", "D": "Ғимараттар" }, "correctAnswer": "B", "explanation": "Көшелерде киіз үйлер тігілетіні жазылған." },
+                { "id": 605, "text": "Әйелдер мерекеде қандай тағам пісіреді?", "options": { "A": "Палау", "B": "Бешбармақ", "C": "Наурыз көже", "D": "Бауырсақ" }, "correctAnswer": "C", "explanation": "Әйелдер наурыз көже пісіретіні айтылған." },
+                { "id": 606, "text": "Наурыз көжеге неше түрлі тағам қосылады?", "options": { "A": "Бес", "B": "Алты", "C": "Жеті", "D": "Сегіз" }, "correctAnswer": "C", "explanation": "Жеті түрлі тағам қосылатыны жазылған." },
+                { "id": 607, "text": "Төмендегілердің қайсысы наурыз көжеге қосылады?", "options": { "A": "Картоп", "B": "Сәбіз", "C": "Бидай", "D": "Алма" }, "correctAnswer": "C", "explanation": "Мәтінде су, ет, тұз, бидай, айран қосылатыны көрсетілген." },
+                { "id": 608, "text": "Мерекеде қандай ойындар ойналады?", "options": { "A": "Спорттық", "B": "Компьютерлік", "C": "Ұлттық", "D": "Үстел" }, "correctAnswer": "C", "explanation": "Ұлттық ойындар ойналатыны айтылған." },
+                { "id": 609, "text": "Төмендегілердің қайсысы ұлттық ойынға жатады?", "options": { "A": "Футбол", "B": "Тоғызқұмалақ", "C": "Шахмат", "D": "Теннис" }, "correctAnswer": "B", "explanation": "Тоғызқұмалақ мысал ретінде келтірілген." },
+                { "id": 610, "text": "Жастар не істейді?", "options": { "A": "Ұйықтайды", "B": "Сабақ оқиды", "C": "Ән айтып, би билейді", "D": "Жұмыс істейді" }, "correctAnswer": "C", "explanation": "Жастар ән айтып, би билейтіні жазылған." },
+                { "id": 611, "text": "Наурыз ненің басы?", "options": { "A": "Қыстың", "B": "Жаңа жылдың", "C": "Айдың", "D": "Аптаның" }, "correctAnswer": "B", "explanation": "Наурыз жаңа жылдың басы делінген." },
+                { "id": 612, "text": "Бұл күні адамдар не айтады?", "options": { "A": "Жаман сөздер", "B": "Жақсы тілектер", "C": "Өлеңдер", "D": "Ертегілер" }, "correctAnswer": "B", "explanation": "Барлығы жақсы тілектер айтады." },
+                { "id": 613, "text": "Мейрам қалай өтеді?", "options": { "A": "Іш пыстырарлық", "B": "Тыныш", "C": "Көңілді", "D": "Қызықсыз" }, "correctAnswer": "C", "explanation": "Мейрам өте көңілді өтетіні жазылған." },
+                { "id": 614, "text": "Адамдар бір-бірін не істейді?", "options": { "A": "Құттықтайды", "B": "Ренжітеді", "C": "Ұрады", "D": "Сынайды" }, "correctAnswer": "A", "explanation": "Адамдар бір-бірін құттықтайтыны айтылған." },
+                { "id": 615, "text": "Мерекеде балалар қандай күйде болады?", "options": { "A": "Жылайды", "B": "Мәз болады", "C": "Қорықады", "D": "Шаршайды" }, "correctAnswer": "B", "explanation": "Балалар да мәз болады деп жазылған." }
+                ]
+            },
+            {
+                "id": 7,
+                "title": "Қазақстан табиғаты",
+                "level": "B1",
+                "word_count": 87,
+                "content": "Қазақстан жер көлемі бойынша әлемде тоғызыншы орында. Оның табиғаты өте бай және алуан түрлі. Елімізде биік таулар, кең далалар, үлкен көлдер бар. Алматы облысында Іле Алатауы орналасқан. Онда әйгілі Медеу мұз айдыны мен Шымбұлақ тау шаңғысы курорты бар. Шығыс Қазақстанда Алтай таулары көз жауын алады. Елімізде Каспий теңізі, Арал, Балқаш сияқты үлкен су қоймалары бар. Қазақстанның ормандарында аю, қасқыр, түлкі, бұғы сияқты жануарлар мекендейді. Далада киіктерді кездестіруге болады. Қазақстанның жер қойнауында пайдалы қазбалар өте көп. Біз табиғатты қорғауымыз керек.",
+                "questions": [
+                { "id": 701, "text": "Қазақстан жер көлемі бойынша нешінші орында?", "options": { "A": "Бесінші", "B": "Жетінші", "C": "Тоғызыншы", "D": "Оныншы" }, "correctAnswer": "C", "explanation": "Әлемде тоғызыншы орында екені жазылған." },
+                { "id": 702, "text": "Қазақстан табиғаты қандай?", "options": { "A": "Кедей", "B": "Бай және алуан түрлі", "C": "Құрғақ", "D": "Біркелкі" }, "correctAnswer": "B", "explanation": "Оның табиғаты өте бай және алуан түрлі екені айтылған." },
+                { "id": 703, "text": "Алматы облысында қандай тау орналасқан?", "options": { "A": "Алтай", "B": "Тәңір тауы", "C": "Іле Алатауы", "D": "Қаратау" }, "correctAnswer": "C", "explanation": "Алматы облысында Іле Алатауы орналасқаны көрсетілген." },
+                { "id": 704, "text": "Медеу не болып табылады?", "options": { "A": "Көл", "B": "Мұз айдыны", "C": "Өзен", "D": "Орман" }, "correctAnswer": "B", "explanation": "Медеу мұз айдыны екені жазылған." },
+                { "id": 705, "text": "Шымбұлақ қандай орын?", "options": { "A": "Тау шаңғысы курорты", "B": "Жазғы лагерь", "C": "Мұражай", "D": "Саябақ" }, "correctAnswer": "A", "explanation": "Шымбұлақ тау шаңғысы курорты ретінде аталған." },
+                { "id": 706, "text": "Алтай таулары қайда орналасқан?", "options": { "A": "Батыс Қазақстанда", "B": "Оңтүстік Қазақстанда", "C": "Шығыс Қазақстанда", "D": "Солтүстік Қазақстанда" }, "correctAnswer": "C", "explanation": "Шығыс Қазақстанда Алтай таулары бар екені айтылған." },
+                { "id": 707, "text": "Төмендегілердің қайсысы теңіз?", "options": { "A": "Балқаш", "B": "Арал", "C": "Каспий", "D": "Зайсан" }, "correctAnswer": "C", "explanation": "Каспий теңізі деп нақты көрсетілген." },
+                { "id": 708, "text": "Балқаш неге жатады?", "options": { "A": "Тауға", "B": "Өзенге", "C": "Су қоймаларына", "D": "Орманға" }, "correctAnswer": "C", "explanation": "Ол үлкен су қоймаларының қатарында аталған." },
+                { "id": 709, "text": "Ормандарда қандай жануарлар мекендейді?", "options": { "A": "Түйе, жылқы", "B": "Аю, қасқыр, түлкі", "C": "Піл, арыстан", "D": "Кит, дельфин" }, "correctAnswer": "B", "explanation": "Ормандарда аю, қасқыр, түлкі, бұғы мекендейтіні айтылған." },
+                { "id": 710, "text": "Далада қандай жануарды кездестіруге болады?", "options": { "A": "Аюды", "B": "Киікті", "C": "Жолбарысты", "D": "Маймылды" }, "correctAnswer": "B", "explanation": "Далада киіктерді кездестіруге болатыны жазылған." },
+                { "id": 711, "text": "Қазақстанның жер қойнауында не көп?", "options": { "A": "Пайдалы қазбалар", "B": "Қоқыс", "C": "Су", "D": "Құм" }, "correctAnswer": "A", "explanation": "Пайдалы қазбалар өте көп екені айтылған." },
+                { "id": 712, "text": "Біз табиғатқа қалай қарауымыз керек?", "options": { "A": "Ластауымыз керек", "B": "Қорғауымыз керек", "C": "Бұзуымыз керек", "D": "Тиіспеуіміз керек" }, "correctAnswer": "B", "explanation": "Біз табиғатты қорғауымыз керек деп жазылған." },
+                { "id": 713, "text": "Қазақстанда нелер бар?", "options": { "A": "Тек қана дала", "B": "Биік таулар, көлдер", "C": "Тек қана таулар", "D": "Мұхиттар" }, "correctAnswer": "B", "explanation": "Биік таулар, кең далалар, үлкен көлдер бар екені көрсетілген." },
+                { "id": 714, "text": "Мәтінде қай жануар аталмаған?", "options": { "A": "Аю", "B": "Бұғы", "C": "Барыс", "D": "Қасқыр" }, "correctAnswer": "C", "explanation": "Мәтінде барыс туралы айтылмаған." },
+                { "id": 715, "text": "Табиғат сөзінің мағынасы қандай?", "options": { "A": "Қалалық өмір", "B": "Қоршаған орта", "C": "Технология", "D": "Өндіріс" }, "correctAnswer": "B", "explanation": "Табиғат қоршаған ортаны білдіреді." }
+                ]
+            },
+            {
+                "id": 8,
+                "title": "Спорттың пайдасы",
+                "level": "B1",
+                "word_count": 87,
+                "content": "Спорт денсаулық кепілі деп бекер айтылмаған. Спортпен шұғылдану адамның денесін шынықтырады. Ол қан айналымын жақсартып, иммунитетті көтереді. Спорттың түрлері өте көп: футбол, волейбол, жүзу, күрес және жеңіл атлетика. Әр адам өзіне ұнайтын спорт түрін таңдай алады. Мен аптасына үш рет бассейнге барамын. Жүзу адамды сергітеді. Сонымен қатар, спорт адамды тәртіпке үйретеді. Ол ерік-жігерді дамытады. Спортшылар үлкен жарыстарға қатысып, ел намысын қорғайды. Қазіргі кезде жастар спортқа көп көңіл бөлуде. Қалаларда жаңа спорт кешендері салынып жатыр. Салауатты өмір салтын ұстану маңызды.",
+                "questions": [
+                { "id": 801, "text": "Спорт ненің кепілі?", "options": { "A": "Байлықтың", "B": "Денсаулықтың", "C": "Сұлулықтың", "D": "Атақтың" }, "correctAnswer": "B", "explanation": "Спорт денсаулық кепілі екені айтылған." },
+                { "id": 802, "text": "Спортпен шұғылдану нені шынықтырады?", "options": { "A": "Ақылды", "B": "Көзді", "C": "Денені", "D": "Шашты" }, "correctAnswer": "C", "explanation": "Адамның денесін шынықтыратыны жазылған." },
+                { "id": 803, "text": "Спорт денсаулыққа қалай әсер етеді?", "options": { "A": "Зиян келтіреді", "B": "Иммунитетті түсіреді", "C": "Қан айналымын жақсартады", "D": "Шаршатады" }, "correctAnswer": "C", "explanation": "Қан айналымын жақсартып, иммунитетті көтеретіні айтылған." },
+                { "id": 804, "text": "Мәтінде спорттың қандай түрлері аталған?", "options": { "A": "Футбол, волейбол, жүзу", "B": "Шахмат, дойбы", "C": "Бокс, каратэ", "D": "Теннис, гольф" }, "correctAnswer": "A", "explanation": "Футбол, волейбол, жүзу, күрес сияқты түрлері аталған." },
+                { "id": 805, "text": "Адам спорт түрін қалай таңдайды?", "options": { "A": "Мәжбүрлеп", "B": "Өзіне ұнайтынын", "C": "Кездейсоқ", "D": "Ең қымбатын" }, "correctAnswer": "B", "explanation": "Әр адам өзіне ұнайтын спорт түрін таңдай алатыны көрсетілген." },
+                { "id": 806, "text": "Автор аптасына неше рет бассейнге барады?", "options": { "A": "Бір", "B": "Екі", "C": "Үш", "D": "Күнде" }, "correctAnswer": "C", "explanation": "Аптасына үш рет бассейнге баратыны жазылған." },
+                { "id": 807, "text": "Жүзу адамды не істейді?", "options": { "A": "Тоңдырады", "B": "Сергітеді", "C": "Шаршатады", "D": "Ауру етеді" }, "correctAnswer": "B", "explanation": "Жүзу адамды сергітетіні айтылған." },
+                { "id": 808, "text": "Спорт адамды неге үйретеді?", "options": { "A": "Жалқаулыққа", "B": "Тәртіпке", "C": "Ұйқыға", "D": "Тамақтануға" }, "correctAnswer": "B", "explanation": "Спорт адамды тәртіпке үйрететіні көрсетілген." },
+                { "id": 809, "text": "Спорт нені дамытады?", "options": { "A": "Қорқынышты", "B": "Ерік-жігерді", "C": "Ашуды", "D": "Салмақты" }, "correctAnswer": "B", "explanation": "Ол ерік-жігерді дамытатыны жазылған." },
+                { "id": 810, "text": "Спортшылар не істейді?", "options": { "A": "Ел намысын қорғайды", "B": "Тек демалады", "C": "Ақша таратады", "D": "Кітап жазады" }, "correctAnswer": "A", "explanation": "Спортшылар жарыстарға қатысып, ел намысын қорғайды." },
+                { "id": 811, "text": "Жастар қазіргі кезде неге көп көңіл бөлуде?", "options": { "A": "Теледидарға", "B": "Спортқа", "C": "Ұйқыға", "D": "Ойынға" }, "correctAnswer": "B", "explanation": "Жастар спортқа көп көңіл бөлуде екені айтылған." },
+                { "id": 812, "text": "Қалаларда не салынып жатыр?", "options": { "A": "Мектептер", "B": "Ауруханалар", "C": "Жаңа спорт кешендері", "D": "Зауыттар" }, "correctAnswer": "C", "explanation": "Жаңа спорт кешендері салынып жатқаны көрсетілген." },
+                { "id": 813, "text": "Нені ұстану маңызды?", "options": { "A": "Зиянды әдеттерді", "B": "Салауатты өмір салтын", "C": "Көп тамақтануды", "D": "Аз қозғалуды" }, "correctAnswer": "B", "explanation": "Салауатты өмір салтын ұстану маңызды делінген." },
+                { "id": 814, "text": "Спорттың иммунитетке әсері қандай?", "options": { "A": "Әсер етпейді", "B": "Көтереді", "C": "Төмендетеді", "D": "Жояды" }, "correctAnswer": "B", "explanation": "Иммунитетті көтеретіні айтылған." },
+                { "id": 815, "text": "Спортшылар қайда қатысады?", "options": { "A": "Жарыстарға", "B": "Концерттерге", "C": "Киноға", "D": "Көрмелерге" }, "correctAnswer": "A", "explanation": "Үлкен жарыстарға қатысатыны жазылған." }
+                ]
+            },
+            {
+                "id": 9,
+                "title": "Кітап оқу",
+                "level": "B1",
+                "word_count": 87,
+                "content": "Кітап білім бұлағы деп саналады. Кітап оқу адамның ой-өрісін кеңейтеді. Ол сөздік қорды байытады және есте сақтау қабілетін жақсартады. Қазіргі кезде электронды кітаптар да өте танымал. Бірақ көп адамдар әлі де қағаз кітаптарды оқығанды ұнатады. Мен тарихи романдар мен детективтерді сүйіп оқимын. Кітапханаға жиі барып тұрамын. Онда сирек кездесетін кітаптарды табуға болады. Әрбір оқылған кітап адамға жаңа әлем ашады. Ата-аналар балаларын кішкентай кезінен кітап оқуға баулуы керек. Кітап адамның ең жақын досы және ақылшысы. Ол қиын кезде дұрыс жол көрсетеді.",
+                "questions": [
+                { "id": 901, "text": "Кітап ненің бұлағы?", "options": { "A": "Ақшаның", "B": "Білімнің", "C": "Судың", "D": "Уақыттың" }, "correctAnswer": "B", "explanation": "Кітап білім бұлағы деп саналады." },
+                { "id": 902, "text": "Кітап оқу адамның ненісін кеңейтеді?", "options": { "A": "Көзін", "B": "Қалтасын", "C": "Ой-өрісін", "D": "Үйін" }, "correctAnswer": "C", "explanation": "Адамның ой-өрісін кеңейтетіні айтылған." },
+                { "id": 903, "text": "Кітап оқу сөздік қорға қалай әсер етеді?", "options": { "A": "Азайтады", "B": "Байытады", "C": "Өзгертпейді", "D": "Ұмыттады" }, "correctAnswer": "B", "explanation": "Сөздік қорды байытатыны жазылған." },
+                { "id": 904, "text": "Кітап оқу қандай қабілетті жақсартады?", "options": { "A": "Есте сақтау", "B": "Жүгіру", "C": "Ұшу", "D": "Сурет салу" }, "correctAnswer": "A", "explanation": "Есте сақтау қабілетін жақсартатыны айтылған." },
+                { "id": 905, "text": "Қазіргі кезде қандай кітаптар танымал?", "options": { "A": "Электронды", "B": "Тасқа жазылған", "C": "Тек шетелдік", "D": "Сөйлейтін" }, "correctAnswer": "A", "explanation": "Электронды кітаптар да өте танымал екені көрсетілген." },
+                { "id": 906, "text": "Көп адамдар қандай кітаптарды оқығанды ұнатады?", "options": { "A": "Қағаз", "B": "Аудио", "C": "Электронды", "D": "Бейне" }, "correctAnswer": "A", "explanation": "Адамдар әлі де қағаз кітаптарды ұнататыны жазылған." },
+                { "id": 907, "text": "Автор қандай жанрдағы кітаптарды сүйіп оқиды?", "options": { "A": "Ертегілер", "B": "Тарихи романдар мен детективтер", "C": "Фантастика", "D": "Поэзия" }, "correctAnswer": "B", "explanation": "Тарихи романдар мен детективтерді оқитыны айтылған." },
+                { "id": 908, "text": "Автор қайда жиі барып тұрады?", "options": { "A": "Дүкенге", "B": "Киноға", "C": "Кітапханаға", "D": "Саябаққа" }, "correctAnswer": "C", "explanation": "Кітапханаға жиі баратыны жазылған." },
+                { "id": 909, "text": "Кітапханадан қандай кітаптарды табуға болады?", "options": { "A": "Тек жаңа", "B": "Сирек кездесетін", "C": "Қымбат", "D": "Жыртық" }, "correctAnswer": "B", "explanation": "Онда сирек кездесетін кітаптарды табуға болатыны көрсетілген." },
+                { "id": 910, "text": "Әрбір оқылған кітап адамға не ашады?", "options": { "A": "Есік", "B": "Терезе", "C": "Жаңа әлем", "D": "Сандық" }, "correctAnswer": "C", "explanation": "Әрбір кітап жаңа әлем ашатыны айтылған." },
+                { "id": 911, "text": "Ата-аналар балаларын неге баулуы керек?", "options": { "A": "Ойынға", "B": "Кітап оқуға", "C": "Теледидар көруге", "D": "Жалқаулыққа" }, "correctAnswer": "B", "explanation": "Балаларын кітап оқуға баулуы керек делінген." },
+                { "id": 912, "text": "Кітап адамның қандай досы?", "options": { "A": "Алыс", "B": "Жаңа", "C": "Ең жақын", "D": "Сенімсіз" }, "correctAnswer": "C", "explanation": "Ең жақын досы және ақылшысы екені жазылған." },
+                { "id": 913, "text": "Кітап адамға не көрсетеді?", "options": { "A": "Қателіктерді", "B": "Дұрыс жолды", "C": "Байлықты", "D": "Қиындықты" }, "correctAnswer": "B", "explanation": "Ол қиын кезде дұрыс жол көрсететіні айтылған." },
+                { "id": 914, "text": "Кітап оқуды қашан бастау керек?", "options": { "A": "Есейгенде", "B": "Қартайғанда", "C": "Кішкентай кезінен", "D": "Уақыт болғанда" }, "correctAnswer": "C", "explanation": "Кішкентай кезінен баулу керектігі жазылған." },
+                { "id": 915, "text": "Кітаптың тағы бір қасиеті қандай?", "options": { "A": "Адамды шаршатады", "B": "Уақытты алады", "C": "Адамға ақылшы болады", "D": "Көзді құртады" }, "correctAnswer": "C", "explanation": "Кітап адамның ақылшысы екені көрсетілген." }
+                ]
+            },
+            {
+                "id": 10,
+                "title": "Ғаламтор",
+                "level": "B2",
+                "word_count": 87,
+                "content": "Бүгінгі таңда ғаламтор адам өмірінің ажырамас бөлігіне айналды. Ғаламтор арқылы біз кез келген ақпаратты тез таба аламыз. Ол әлемнің түкпір-түкпіріндегі адамдармен байланыс орнатуға мүмкіндік береді. Студенттер ғаламторды оқу үшін пайдаланады. Онда көптеген онлайн курстар мен кітаптар бар. Сонымен қатар, интернет арқылы сауда жасау өте ыңғайлы. Үйден шықпай-ақ тамақ немесе киімге тапсырыс беруге болады. Алайда, ғаламтордың зиянды тұстары да бар. Кейбір адамдар виртуалды әлемге тәуелді болып қалады. Уақытын тек әлеуметтік желілерде өткізеді. Сондықтан интернетті дұрыс және пайдалы мақсатта қолдану қажет.",
+                "questions": [
+                { "id": 1001, "text": "Ғаламтор адам өмірінің қандай бөлігіне айналды?", "options": { "A": "Уақытша", "B": "Ажырамас", "C": "Керексіз", "D": "Қауіпті" }, "correctAnswer": "B", "explanation": "Ғаламтор ажырамас бөлігіне айналғаны жазылған." },
+                { "id": 1002, "text": "Ғаламтор арқылы біз нені тез таба аламыз?", "options": { "A": "Ақшаны", "B": "Ақпаратты", "C": "Заттарды", "D": "Жұмысты" }, "correctAnswer": "B", "explanation": "Кез келген ақпаратты тез таба алатынымыз айтылған." },
+                { "id": 1003, "text": "Ғаламтор кімдермен байланыс орнатуға көмектеседі?", "options": { "A": "Тек көршілермен", "B": "Әлемнің түкпіріндегі адамдармен", "C": "Тек туыстармен", "D": "Ешкіммен" }, "correctAnswer": "B", "explanation": "Әлемнің түкпіріндегі адамдармен байланысуға мүмкіндік беретіні жазылған." },
+                { "id": 1004, "text": "Студенттер ғаламторды не үшін пайдаланады?", "options": { "A": "Ойнау үшін", "B": "Оқу үшін", "C": "Ұйықтау үшін", "D": "Ақша табу үшін" }, "correctAnswer": "B", "explanation": "Студенттер оқу үшін пайдаланатыны көрсетілген." },
+                { "id": 1005, "text": "Ғаламторда оқуға қатысты не бар?", "options": { "A": "Онлайн курстар мен кітаптар", "B": "Тек ойындар", "C": "Тек кинолар", "D": "Ештеңе жоқ" }, "correctAnswer": "A", "explanation": "Онда көптеген онлайн курстар мен кітаптар бар делінген." },
+                { "id": 1006, "text": "Интернет арқылы не істеу өте ыңғайлы?", "options": { "A": "Сауда жасау", "B": "Жүгіру", "C": "Тамақ пісіру", "D": "Үй тазалау" }, "correctAnswer": "A", "explanation": "Интернет арқылы сауда жасау өте ыңғайлы екені айтылған." },
+                { "id": 1007, "text": "Үйден шықпай-ақ неге тапсырыс беруге болады?", "options": { "A": "Ауа райына", "B": "Тамақ немесе киімге", "C": "Достарға", "D": "Мұғалімге" }, "correctAnswer": "B", "explanation": "Тамақ немесе киімге тапсырыс беруге болатыны жазылған." },
+                { "id": 1008, "text": "Ғаламтордың қандай тұстары бар?", "options": { "A": "Тек пайдалы", "B": "Зиянды тұстары да бар", "C": "Ешқандай", "D": "Тек зиянды" }, "correctAnswer": "B", "explanation": "Ғаламтордың зиянды тұстары да бар екені көрсетілген." },
+                { "id": 1009, "text": "Кейбір адамдар неге тәуелді болып қалады?", "options": { "A": "Кітапқа", "B": "Спортқа", "C": "Виртуалды әлемге", "D": "Жұмысқа" }, "correctAnswer": "C", "explanation": "Адамдар виртуалды әлемге тәуелді болып қалатыны айтылған." },
+                { "id": 1010, "text": "Тәуелді адамдар уақытын қайда өткізеді?", "options": { "A": "Саябақта", "B": "Кітапханада", "C": "Әлеуметтік желілерде", "D": "Дүкенде" }, "correctAnswer": "C", "explanation": "Уақытын тек әлеуметтік желілерде өткізетіні жазылған." },
+                { "id": 1011, "text": "Интернетті қалай қолдану қажет?", "options": { "A": "Күні бойы", "B": "Дұрыс және пайдалы мақсатта", "C": "Мүлдем қолданбау", "D": "Тек ойын үшін" }, "correctAnswer": "B", "explanation": "Интернетті дұрыс және пайдалы мақсатта қолдану керектігі айтылған." },
+                { "id": 1012, "text": "Мәтіннің негізгі тақырыбы қандай?", "options": { "A": "Спорт", "B": "Ғаламтордың пайдасы мен зияны", "C": "Кітап оқу", "D": "Табиғат" }, "correctAnswer": "B", "explanation": "Мәтін ғаламтордың әртүрлі жақтарын сипаттайды." },
+                { "id": 1013, "text": "Ғаламтор арқылы ақпаратты қалай табамыз?", "options": { "A": "Баяу", "B": "Тез", "C": "Қиын", "D": "Таба алмаймыз" }, "correctAnswer": "B", "explanation": "Ақпаратты тез таба алатынымыз көрсетілген." },
+                { "id": 1014, "text": "Сауда жасау үшін үйден шығу қажет пе?", "options": { "A": "Міндетті түрде", "B": "Жоқ, қажет емес", "C": "Кейде", "D": "Мәтінде айтылмаған" }, "correctAnswer": "B", "explanation": "Үйден шықпай-ақ тапсырыс беруге болатыны айтылған." },
+                { "id": 1015, "text": "Мәтін кімдерге арналған болуы мүмкін?", "options": { "A": "Ғаламтор қолданушыларына", "B": "Жануарларға", "C": "Тек қарттарға", "D": "Тек балаларға" }, "correctAnswer": "A", "explanation": "Ғаламтор туралы болғандықтан жалпы қолданушыларға арналған." }
+                ]
+            },
+            {
+                "id": 11,
+                "title": "Абай Құнанбайұлы",
+                "level": "B2",
+                "word_count": 86,
+                "content": "Абай Құнанбайұлы ұлы қазақ ақыны, философ және ағартушы. Ол мың сегіз жүз қырық бесінші жылы Семей өңірінде дүниеге келген. Абайдың шын аты Ибраһим. Әжесі Зере оны еркелетіп Абай деп атаған. Ол жастайынан араб, парсы, орыс тілдерін меңгерген. Абай өзінің шығармаларында адамгершілік, білім, ғылым мәселелерін көтерді. Оның Қара сөздері қазақ әдебиетіндегі теңдесі жоқ туынды. Қара сөздерде өмірлік мәселелер мен философиялық ойлар терең жазылған. Абайдың өлеңдеріне жазылған әндері халық арасында кең тараған. Оның мұрасы бүкіл адамзат үшін баға жетпес қазына. Абай есімі қашанда халық жадында сақталады.",
+                "questions": [
+                { "id": 1101, "text": "Абай Құнанбайұлы кім?", "options": { "A": "Батыр", "B": "Ақын, философ, ағартушы", "C": "Күйші", "D": "Саясаткер" }, "correctAnswer": "B", "explanation": "Оның ақын, философ және ағартушы екені жазылған." },
+                { "id": 1102, "text": "Абай қай жылы дүниеге келген?", "options": { "A": "1845", "B": "1904", "C": "1885", "D": "1910" }, "correctAnswer": "A", "explanation": "Мың сегіз жүз қырық бесінші жылы туғаны айтылған." },
+                { "id": 1103, "text": "Ол қай өңірде дүниеге келген?", "options": { "A": "Алматы", "B": "Түркістан", "C": "Семей", "D": "Атырау" }, "correctAnswer": "C", "explanation": "Семей өңірінде дүниеге келгені көрсетілген." },
+                { "id": 1104, "text": "Абайдың шын аты кім?", "options": { "A": "Құнанбай", "B": "Ибраһим", "C": "Шәкерім", "D": "Мұхтар" }, "correctAnswer": "B", "explanation": "Абайдың шын аты Ибраһим екені жазылған." },
+                { "id": 1105, "text": "Оны кім Абай деп еркелетіп атаған?", "options": { "A": "Анасы", "B": "Әкесі", "C": "Әжесі Зере", "D": "Атасы" }, "correctAnswer": "C", "explanation": "Әжесі Зере оны еркелетіп Абай деп атағаны айтылған." },
+                { "id": 1106, "text": "Ол қандай тілдерді меңгерген?", "options": { "A": "Ағылшын, француз", "B": "Араб, парсы, орыс", "C": "Қытай, жапон", "D": "Түрік, неміс" }, "correctAnswer": "B", "explanation": "Араб, парсы, орыс тілдерін меңгергені көрсетілген." },
+                { "id": 1107, "text": "Абай шығармаларында қандай мәселелерді көтерді?", "options": { "A": "Саясат пен экономика", "B": "Адамгершілік, білім, ғылым", "C": "Спорт пен денсаулық", "D": "Технология" }, "correctAnswer": "B", "explanation": "Адамгершілік, білім, ғылым мәселелерін көтергені айтылған." },
+                { "id": 1108, "text": "Оның әдебиеттегі теңдесі жоқ туындысы қалай аталады?", "options": { "A": "Қара сөздері", "B": "Абай жолы", "C": "Маса", "D": "Оян, қазақ" }, "correctAnswer": "A", "explanation": "Қара сөздері теңдесі жоқ туынды екені жазылған." },
+                { "id": 1109, "text": "Қара сөздерде не жазылған?", "options": { "A": "Ертегілер", "B": "Тарихи оқиғалар", "C": "Өмірлік мәселелер мен философиялық ойлар", "D": "Жануарлар туралы" }, "correctAnswer": "C", "explanation": "Өмірлік мәселелер мен философиялық ойлар терең жазылған." },
+                { "id": 1110, "text": "Халық арасында кең тараған не?", "options": { "A": "Оның суреттері", "B": "Өлеңдеріне жазылған әндері", "C": "Күйлері", "D": "Киімдері" }, "correctAnswer": "B", "explanation": "Өлеңдеріне жазылған әндері халық арасында кең тараған." },
+                { "id": 1111, "text": "Абайдың мұрасы кімдер үшін баға жетпес қазына?", "options": { "A": "Тек қазақтар үшін", "B": "Бүкіл адамзат үшін", "C": "Тек ақындар үшін", "D": "Тек студенттер үшін" }, "correctAnswer": "B", "explanation": "Бүкіл адамзат үшін баға жетпес қазына екені айтылған." },
+                { "id": 1112, "text": "Абай есімі қайда сақталады?", "options": { "A": "Кітапта", "B": "Мұражайда", "C": "Халық жадында", "D": "Интернетте" }, "correctAnswer": "C", "explanation": "Абай есімі қашанда халық жадында сақталады делінген." },
+                { "id": 1113, "text": "Абайдың әжесінің есімі кім?", "options": { "A": "Ұлжан", "B": "Зере", "C": "Айгерім", "D": "Тоғжан" }, "correctAnswer": "B", "explanation": "Әжесінің аты Зере екені көрсетілген." },
+                { "id": 1114, "text": "Абай тілдерді қашан меңгерген?", "options": { "A": "Қартайғанда", "B": "Жастайынан", "C": "Университетте", "D": "Шетелде" }, "correctAnswer": "B", "explanation": "Жастайынан меңгергені жазылған." },
+                { "id": 1115, "text": "Абайдың әкесінің аты мәтінде берілген бе?", "options": { "A": "Иә, Құнанбай", "B": "Жоқ, берілмеген", "C": "Иә, Ибраһим", "D": "Иә, Абай" }, "correctAnswer": "A", "explanation": "Құнанбайұлы деп тегінде көрсетілген." }
+                ]
+            },
+            {
+                "id": 12,
+                "title": "Экология мәселелері",
+                "level": "B2",
+                "word_count": 87,
+                "content": "Экология қазіргі заманның ең өзекті мәселелерінің бірі. Табиғатты қорғау барлық адамзаттың міндеті. Зауыттар мен фабрикалардан шығатын түтін ауаны ластайды. Көліктерден бөлінетін газдар да қоршаған ортаға үлкен зиян келтіреді. Ормандарды кесу салдарынан жануарлар мен құстардың мекендері жойылуда. Пластик қалдықтар мұхиттар мен теңіздерді ластап жатыр. Бұл теңіз жануарларының өліміне әкеліп соғады. Экологиялық жағдайды жақсарту үшін біз не істей аламыз? Алдымен, қоқысты сұрыптап тастауды үйренуіміз керек. Агаштар отырғызып, жасыл желекті көбейту қажет. Баламалы энергия көздерін пайдалану да маңызды. Табиғатты аялау біздің болашағымыз үшін өте қажет.",
+                "questions": [
+                { "id": 1201, "text": "Экология қандай мәселе?", "options": { "A": "Өзекті емес", "B": "Ең өзекті мәселелерінің бірі", "C": "Ескі мәселе", "D": "Шешілген мәселе" }, "correctAnswer": "B", "explanation": "Қазіргі заманның ең өзекті мәселелерінің бірі екені айтылған." },
+                { "id": 1202, "text": "Табиғатты қорғау кімнің міндеті?", "options": { "A": "Тек үкіметтің", "B": "Тек ғалымдардың", "C": "Барлық адамзаттың", "D": "Тек экологтардың" }, "correctAnswer": "C", "explanation": "Барлық адамзаттың міндеті екені жазылған." },
+                { "id": 1203, "text": "Ауаны не ластайды?", "options": { "A": "Ағаштар", "B": "Зауыттардан шығатын түтін", "C": "Жаңбыр", "D": "Құстар" }, "correctAnswer": "B", "explanation": "Зауыттар мен фабрикалардан шығатын түтін ауаны ластайды." },
+                { "id": 1204, "text": "Қоршаған ортаға тағы не зиян келтіреді?", "options": { "A": "Велосипедтер", "B": "Көліктерден бөлінетін газдар", "C": "Күн сәулесі", "D": "Жел" }, "correctAnswer": "B", "explanation": "Көліктерден бөлінетін газдар зиян келтіретіні көрсетілген." },
+                { "id": 1205, "text": "Ормандарды кесудің салдары қандай?", "options": { "A": "Ауа тазарады", "B": "Жануарлардың мекендері жойылады", "C": "Ағаштар көбейеді", "D": "Қалалар үлкейеді" }, "correctAnswer": "B", "explanation": "Жануарлар мен құстардың мекендері жойылуда екені жазылған." },
+                { "id": 1206, "text": "Мұхиттар мен теңіздерді не ластап жатыр?", "options": { "A": "Пластик қалдықтар", "B": "Балықтар", "C": "Балдырлар", "D": "Құм" }, "correctAnswer": "A", "explanation": "Пластик қалдықтар мұхиттарды ластайтыны айтылған." },
+                { "id": 1207, "text": "Пластик қалдықтар неге әкеліп соғады?", "options": { "A": "Судың тазаруына", "B": "Теңіз жануарларының өліміне", "C": "Балықтардың көбеюіне", "D": "Мұздықтардың еруіне" }, "correctAnswer": "B", "explanation": "Теңіз жануарларының өліміне әкеліп соғады." },
+                { "id": 1208, "text": "Экологияны жақсарту үшін алдымен не істеу керек?", "options": { "A": "Зауыттарды жабу", "B": "Қоқысты сұрыптап тастауды үйрену", "C": "Көлікпен жүрмеу", "D": "Орманда өмір сүру" }, "correctAnswer": "B", "explanation": "Қоқысты сұрыптап тастауды үйрену керек делінген." },
+                { "id": 1209, "text": "Жасыл желекті қалай көбейтуге болады?", "options": { "A": "Ағаштар отырғызу арқылы", "B": "Гүлдерді жұлу арқылы", "C": "Суды көп төгу арқылы", "D": "Шөптерді өртеу арқылы" }, "correctAnswer": "A", "explanation": "Ағаштар отырғызып, жасыл желекті көбейту қажет." },
+                { "id": 1210, "text": "Қандай энергия көздерін пайдалану маңызды?", "options": { "A": "Дәстүрлі", "B": "Баламалы", "C": "Қымбат", "D": "Тиімсіз" }, "correctAnswer": "B", "explanation": "Баламалы энергия көздерін пайдалану маңызды екені жазылған." },
+                { "id": 1211, "text": "Табиғатты аялау не үшін қажет?", "options": { "A": "Өткеніміз үшін", "B": "Болашағымыз үшін", "C": "Көршілер үшін", "D": "Бүгін үшін ғана" }, "correctAnswer": "B", "explanation": "Табиғатты аялау болашағымыз үшін өте қажет." },
+                { "id": 1212, "text": "Мәтінде қай ластану түрі аталмаған?", "options": { "A": "Ауаның ластануы", "B": "Судың ластануы", "C": "Шудың ластануы", "D": "Топырақтың ластануы" }, "correctAnswer": "C", "explanation": "Мәтінде шу ластануы туралы айтылмаған." },
+                { "id": 1213, "text": "Теңіз жануарлары неден зардап шегеді?", "options": { "A": "Акулалардан", "B": "Пластик қалдықтардан", "C": "Кемелерден", "D": "Дауылдардан" }, "correctAnswer": "B", "explanation": "Пластик қалдықтар олардың өліміне әкелетіні көрсетілген." },
+                { "id": 1214, "text": "Көліктерден не бөлінеді?", "options": { "A": "Түтін", "B": "Газдар", "C": "Бу", "D": "От" }, "correctAnswer": "B", "explanation": "Көліктерден бөлінетін газдар деп жазылған." },
+                { "id": 1215, "text": "Автордың негізгі ойы қандай?", "options": { "A": "Экономиканы дамыту", "B": "Табиғатты қорғауға шақыру", "C": "Көліктерді сату", "D": "Ормандарды кесу" }, "correctAnswer": "B", "explanation": "Автор табиғатты қорғаудың маңыздылығын түсіндіреді." }
+                ]
+            },
+            {
+                "id": 13,
+                "title": "Болашақ мамандықтары",
+                "level": "C1",
+                "word_count": 87,
+                "content": "Технологияның қарқынды дамуы еңбек нарығына үлкен өзгерістер әкелуде. Көптеген дәстүрлі мамандықтар автоматтандырылып, олардың орнын жаңа кәсіптер басуда. Болашақта жасанды интеллект, робототехника және биотехнология салаларының мамандарына сұраныс артады. Деректер талдаушысы, киберқауіпсіздік сарапшысы сияқты мамандықтар қазірдің өзінде өте танымал. Сонымен қатар, экологиялық таза технологияларды дамытатын инженерлер де маңызды рөл атқарады. Болашақ маманнан тек кәсіби білім ғана емес, сыни ойлау, шығармашылық қабілет талап етіледі. Өмір бойы оқу принципі әрбір адам үшін қалыпты жағдайға айналады. Себебі жаңа дағдыларды үнемі меңгеріп отыру бәсекеге қабілеттіліктің басты шарты. Адамдар технологияны тиімді басқаруды үйренуі тиіс.",
+                "questions": [
+                { "id": 1301, "text": "Технологияның дамуы қай салаға өзгеріс әкелуде?", "options": { "A": "Спортқа", "B": "Еңбек нарығына", "C": "Тамақтануға", "D": "Ауа райына" }, "correctAnswer": "B", "explanation": "Еңбек нарығына үлкен өзгерістер әкелуде деп жазылған." },
+                { "id": 1302, "text": "Дәстүрлі мамандықтармен не болып жатыр?", "options": { "A": "Көбеюде", "B": "Автоматтандырылуда", "C": "Танымал болуда", "D": "Өзгермейді" }, "correctAnswer": "B", "explanation": "Олардың автоматтандырылып жатқаны айтылған." },
+                { "id": 1303, "text": "Олардың орнын не басуда?", "options": { "A": "Жаңа кәсіптер", "B": "Ескі кәсіптер", "C": "Шетелдіктер", "D": "Балалар" }, "correctAnswer": "A", "explanation": "Олардың орнын жаңа кәсіптер басуда делінген." },
+                { "id": 1304, "text": "Болашақта қандай мамандарға сұраныс артады?", "options": { "A": "Жүргізушілерге", "B": "Жасанды интеллект мамандарына", "C": "Сатушыларға", "D": "Есепшілерге" }, "correctAnswer": "B", "explanation": "Жасанды интеллект мамандарына сұраныс артатыны көрсетілген." },
+                { "id": 1305, "text": "Мәтінде қандай танымал мамандық аталған?", "options": { "A": "Мұғалім", "B": "Дәрігер", "C": "Деректер талдаушысы", "D": "Құрылысшы" }, "correctAnswer": "C", "explanation": "Деректер талдаушысы, киберқауіпсіздік сарапшысы аталған." },
+                { "id": 1306, "text": "Инженерлер нені дамытады?", "options": { "A": "Жаңа қалаларды", "B": "Экологиялық таза технологияларды", "C": "Ескі көліктерді", "D": "Ойындарды" }, "correctAnswer": "B", "explanation": "Экологиялық таза технологияларды дамытатыны жазылған." },
+                { "id": 1307, "text": "Болашақ маманнан кәсіби білімнен басқа не талап етіледі?", "options": { "A": "Сыни ойлау", "B": "Күш", "C": "Ақша", "D": "Сұлулық" }, "correctAnswer": "A", "explanation": "Сыни ойлау, шығармашылық қабілет талап етілетіні айтылған." },
+                { "id": 1308, "text": "Адамдар үшін қандай принцип қалыпты жағдайға айналады?", "options": { "A": "Өмір бойы демалу", "B": "Өмір бойы оқу", "C": "Өмір бойы жұмыс істемеу", "D": "Тек жастай оқу" }, "correctAnswer": "B", "explanation": "Өмір бойы оқу принципі қалыпты жағдайға айналатыны көрсетілген." },
+                { "id": 1309, "text": "Бәсекеге қабілеттіліктің басты шарты қандай?", "options": { "A": "Көп ұйықтау", "B": "Жаңа дағдыларды үнемі меңгеру", "C": "Тек бір жұмыста істеу", "D": "Шетелге көшу" }, "correctAnswer": "B", "explanation": "Жаңа дағдыларды үнемі меңгеріп отыру басты шарт екені жазылған." },
+                { "id": 1310, "text": "Адамдар нені басқаруды үйренуі тиіс?", "options": { "A": "Көлікті", "B": "Технологияны", "C": "Табиғатты", "D": "Жануарларды" }, "correctAnswer": "B", "explanation": "Технологияны тиімді басқаруды үйренуі тиіс делінген." },
+                { "id": 1311, "text": "Киберқауіпсіздік сарапшысы қандай мамандық?", "options": { "A": "Ескі", "B": "Қазірдің өзінде танымал", "C": "Болашақта жойылатын", "D": "Керексіз" }, "correctAnswer": "B", "explanation": "Бұл мамандықтар қазірдің өзінде өте танымал екені айтылған." },
+                { "id": 1312, "text": "Робототехника саласына сұраныс қандай болады?", "options": { "A": "Төмендейді", "B": "Артады", "C": "Өзгермейді", "D": "Жоғалады" }, "correctAnswer": "B", "explanation": "Бұл салалардың мамандарына сұраныс артады." },
+                { "id": 1313, "text": "Биотехнология мәтінде қандай мәнмәтінде айтылған?", "options": { "A": "Сұраныс артатын сала ретінде", "B": "Қауіпті сала ретінде", "C": "Ескі сала ретінде", "D": "Зиянды сала ретінде" }, "correctAnswer": "A", "explanation": "Болашақта сұраныс артатын салалар қатарында аталған." },
+                { "id": 1314, "text": "Мәтінде адамның қандай қабілеті маңызды деп көрсетілген?", "options": { "A": "Шығармашылық", "B": "Жүгіру", "C": "Есту", "D": "Сөйлеу" }, "correctAnswer": "A", "explanation": "Сыни ойлау және шығармашылық қабілет талап етіледі." },
+                { "id": 1315, "text": "Технологияның даму сипаты қандай?", "options": { "A": "Баяу", "B": "Қарқынды", "C": "Тоқтап қалған", "D": "Белгісіз" }, "correctAnswer": "B", "explanation": "Технологияның қарқынды дамуы деп сипатталған." }
+                ]
+            },
+            {
+                "id": 14,
+                "title": "Ғарыш әлемі",
+                "level": "C1",
+                "word_count": 87,
+                "content": "Адамзат баласы ғарыш кеңістігін зерттеуді ежелден армандаған. Жиырмасыншы ғасырдың ортасында бұл арман ақиқатқа айналды. Юрий Гагариннің ғарышқа алғашқы ұшуы тарихтағы ұлы оқиғалардың бірі. Қазақстанның Байқоңыр ғарыш айлағы әлемдегі ең ірі және ең көне ғарыш алаңы болып табылады. Осы жерден жүздеген зымырандар ұшырылды. Қазақтың тұңғыш ғарышкері Тоқтар Әубәкіров мың тоғыз жүз тоқсан бірінші жылы ғарышқа самғады. Қазіргі кезде ғарышты зерттеу жаңа деңгейге көтерілді. Марс ғаламшарына адам ұшыру жоспарлануда. Спутниктер арқылы біз ауа райын болжап, байланыс жүйелерін қамтамасыз етеміз. Ғарыш ғылымы адамзаттың дамуына зор үлес қосуда.",
+                "questions": [
+                { "id": 1401, "text": "Адамзат нені зерттеуді армандаған?", "options": { "A": "Мұхит түбін", "B": "Ғарыш кеңістігін", "C": "Жер астын", "D": "Ормандарды" }, "correctAnswer": "B", "explanation": "Ғарыш кеңістігін зерттеуді армандағаны айтылған." },
+                { "id": 1402, "text": "Бұл арман қашан ақиқатқа айналды?", "options": { "A": "Он тоғызыншы ғасырда", "B": "Жиырмасыншы ғасырдың ортасында", "C": "Жиырма бірінші ғасырда", "D": "Ерте заманда" }, "correctAnswer": "B", "explanation": "Жиырмасыншы ғасырдың ортасында ақиқатқа айналғаны жазылған." },
+                { "id": 1403, "text": "Ғарышқа алғаш ұшқан кім?", "options": { "A": "Нил Армстронг", "B": "Юрий Гагарин", "C": "Тоқтар Әубәкіров", "D": "Талғат Мұсабаев" }, "correctAnswer": "B", "explanation": "Юрий Гагариннің алғашқы ұшуы деп көрсетілген." },
+                { "id": 1404, "text": "Байқоңыр қандай айлақ?", "options": { "A": "Ең кішкентай", "B": "Жаңа", "C": "Ең ірі және ең көне", "D": "Белгісіз" }, "correctAnswer": "C", "explanation": "Әлемдегі ең ірі және ең көне ғарыш алаңы екені айтылған." },
+                { "id": 1405, "text": "Байқоңырдан не ұшырылды?", "options": { "A": "Ұшақтар", "B": "Тікұшақтар", "C": "Зымырандар", "D": "Дрондар" }, "correctAnswer": "C", "explanation": "Осы жерден жүздеген зымырандар ұшырылды делінген." },
+                { "id": 1406, "text": "Қазақтың тұңғыш ғарышкері кім?", "options": { "A": "Айдын Айымбетов", "B": "Тоқтар Әубәкіров", "C": "Талғат Мұсабаев", "D": "Юрий Гагарин" }, "correctAnswer": "B", "explanation": "Тоқтар Әубәкіров тұңғыш ғарышкер екені жазылған." },
+                { "id": 1407, "text": "Ол ғарышқа қай жылы ұшты?", "options": { "A": "1961", "B": "1991", "C": "2001", "D": "1981" }, "correctAnswer": "B", "explanation": "Мың тоғыз жүз тоқсан бірінші жылы ұшқаны айтылған." },
+                { "id": 1408, "text": "Ғарышты зерттеу қазіргі кезде қандай деңгейде?", "options": { "A": "Тоқтап қалған", "B": "Жаңа деңгейде", "C": "Төмен деңгейде", "D": "Аяқталған" }, "correctAnswer": "B", "explanation": "Жаңа деңгейге көтерілді деп көрсетілген." },
+                { "id": 1409, "text": "Қай ғаламшарға адам ұшыру жоспарлануда?", "options": { "A": "Шолпанға", "B": "Юпитерге", "C": "Марсқа", "D": "Айға" }, "correctAnswer": "C", "explanation": "Марс ғаламшарына адам ұшыру жоспарлануда." },
+                { "id": 1410, "text": "Спутниктер не үшін қажет?", "options": { "A": "Тек суретке түсіру үшін", "B": "Ауа райын болжау және байланыс үшін", "C": "Жұлдыздарды санау үшін", "D": "Ғарышты қоқыстан тазарту үшін" }, "correctAnswer": "B", "explanation": "Ауа райын болжап, байланыс жүйелерін қамтамасыз ететіні жазылған." },
+                { "id": 1411, "text": "Ғарыш ғылымы адамзатқа қалай әсер етеді?", "options": { "A": "Зиян келтіреді", "B": "Дамуына зор үлес қосады", "C": "Артқа тартады", "D": "Ешқандай әсері жоқ" }, "correctAnswer": "B", "explanation": "Дамуына зор үлес қосуда екені айтылған." },
+                { "id": 1412, "text": "Байқоңыр қай елде орналасқан?", "options": { "A": "Ресей", "B": "Қазақстан", "C": "АҚШ", "D": "Қытай" }, "correctAnswer": "B", "explanation": "Қазақстанның Байқоңыр ғарыш айлағы деп жазылған." },
+                { "id": 1413, "text": "Юрий Гагариннің ұшуы қалай бағаланады?", "options": { "A": "Кішкентай оқиға", "B": "Ұлы оқиға", "C": "Сәтсіз оқиға", "D": "Қалыпты жағдай" }, "correctAnswer": "B", "explanation": "Тарихтағы ұлы оқиғалардың бірі деп көрсетілген." },
+                { "id": 1414, "text": "Мәтінде неше ғарышкердің аты аталған?", "options": { "A": "Бір", "B": "Екі", "C": "Үш", "D": "Төрт" }, "correctAnswer": "B", "explanation": "Гагарин және Әубәкіров екі ғарышкер аталған." },
+                { "id": 1415, "text": "Адамзаттың арманы қандай болған?", "options": { "A": "Жаңа", "B": "Ежелгі", "C": "Қысқа мерзімді", "D": "Орындалмайтын" }, "correctAnswer": "B", "explanation": "Ежелден армандаған деп жазылған." }
+                ]
+            },
+            {
+                "id": 15,
+                "title": "Жасанды интеллект",
+                "level": "C1",
+                "word_count": 87,
+                "content": "Жасанды интеллект технологиялары бүгінгі қоғамның даму бағытын түбегейлі өзгертіп жатыр. Бұл жүйелер үлкен көлемдегі деректерді өңдеп, күрделі есептерді шешуге қабілетті. Олар медицинада ауруларды ерте бастан анықтауға көмектеседі. Қаржы саласында тәуекелдерді бағалап, болжамдар жасайды. Дегенмен, жасанды интеллектінің дамуы белгілі бір қауіптерді де туындатады. Соның бірі жұмыс орындарының қысқару қаупі. Сонымен қатар, этикалық мәселелер мен жеке деректердің қауіпсіздігі үлкен назарды қажет етеді. Ғалымдар бұл технологияны адамзатқа зиян келтірмейтіндей етіп реттеу жолдарын іздестіруде. Жасанды интеллект адамды алмастырмайды, ол тек күшті құрал ретінде қызмет етуі тиіс. Бұл құралды дұрыс қолдану қоғамның жауапкершілігінде.",
+                "questions": [
+                { "id": 1501, "text": "Жасанды интеллект қоғамның даму бағытын қалай өзгертіп жатыр?", "options": { "A": "Жайлап", "B": "Түбегейлі", "C": "Шамалы", "D": "Өзгертпейді" }, "correctAnswer": "B", "explanation": "Түбегейлі өзгертіп жатыр деп жазылған." },
+                { "id": 1502, "text": "Бұл жүйелер нені өңдеуге қабілетті?", "options": { "A": "Тек мәтінді", "B": "Үлкен көлемдегі деректерді", "C": "Тек суреттерді", "D": "Ештеңені" }, "correctAnswer": "B", "explanation": "Үлкен көлемдегі деректерді өңдеп есептерді шешеді." },
+                { "id": 1503, "text": "Олар медицинада не үшін қолданылады?", "options": { "A": "Дәрілерді сатуға", "B": "Ауруларды ерте бастан анықтауға", "C": "Операция жасауға", "D": "Дәрігерлерді ауыстыруға" }, "correctAnswer": "B", "explanation": "Ауруларды ерте бастан анықтауға көмектесетіні айтылған." },
+                { "id": 1504, "text": "Қаржы саласында олар не істейді?", "options": { "A": "Ақша басып шығарады", "B": "Тәуекелдерді бағалап, болжамдар жасайды", "C": "Банктерді жабады", "D": "Қарыз таратады" }, "correctAnswer": "B", "explanation": "Тәуекелдерді бағалап, болжамдар жасайтыны көрсетілген." },
+                { "id": 1505, "text": "Жасанды интеллектінің дамуы қандай қауіп туындатады?", "options": { "A": "Ауа райын бұзады", "B": "Жұмыс орындарының қысқаруы", "C": "Жер сілкінісін", "D": "Су тасқынын" }, "correctAnswer": "B", "explanation": "Жұмыс орындарының қысқару қаупі бар екені жазылған." },
+                { "id": 1506, "text": "Тағы қандай мәселелер назарды қажет етеді?", "options": { "A": "Тек экономикалық", "B": "Этикалық мәселелер мен қауіпсіздік", "C": "Тек саяси", "D": "Спорттық" }, "correctAnswer": "B", "explanation": "Этикалық мәселелер мен жеке деректердің қауіпсіздігі аталған." },
+                { "id": 1507, "text": "Ғалымдар технологияны қалай реттеу жолдарын іздеуде?", "options": { "A": "Адамзатқа зиян келтірмейтіндей", "B": "Тек пайда әкелетіндей", "C": "Қымбат болатындай", "D": "Қолжетімсіз етіп" }, "correctAnswer": "A", "explanation": "Адамзатқа зиян келтірмейтіндей етіп реттеу керектігі жазылған." },
+                { "id": 1508, "text": "Жасанды интеллект адамды алмастыра ма?", "options": { "A": "Иә, толығымен", "B": "Жоқ, алмастырмайды", "C": "Белгісіз", "D": "Кейін алмастырады" }, "correctAnswer": "B", "explanation": "Жасанды интеллект адамды алмастырмайды делінген." },
+                { "id": 1509, "text": "Ол қандай рөл атқаруы тиіс?", "options": { "A": "Басқарушы", "B": "Күшті құрал", "C": "Жау", "D": "Көшбасшы" }, "correctAnswer": "B", "explanation": "Тек күшті құрал ретінде қызмет етуі тиіс екені айтылған." },
+                { "id": 1510, "text": "Құралды дұрыс қолдану кімнің жауапкершілігінде?", "options": { "A": "Машиналардың", "B": "Қоғамның", "C": "Тек ғалымдардың", "D": "Балалардың" }, "correctAnswer": "B", "explanation": "Қоғамның жауапкершілігінде екені көрсетілген." },
+                { "id": 1511, "text": "Жасанды интеллект жүйелері қандай есептерді шешеді?", "options": { "A": "Оңай", "B": "Күрделі", "C": "Тек математикалық", "D": "Шеше алмайды" }, "correctAnswer": "B", "explanation": "Күрделі есептерді шешуге қабілетті екені жазылған." },
+                { "id": 1512, "text": "Жеке деректердің несі маңызды?", "options": { "A": "Көптігі", "B": "Қауіпсіздігі", "C": "Ашықтығы", "D": "Сатылуы" }, "correctAnswer": "B", "explanation": "Жеке деректердің қауіпсіздігі үлкен назарды қажет етеді." },
+                { "id": 1513, "text": "Мәтінде қандай қауіптер аталған?", "options": { "A": "Экологиялық", "B": "Жұмыс орындарының қысқаруы", "C": "Ғарыштық", "D": "Вирустық" }, "correctAnswer": "B", "explanation": "Жұмыс орындарының қысқару қаупі аталған." },
+                { "id": 1514, "text": "Жасанды интеллекттің дамуы қандай процесс?", "options": { "A": "Пайдалы әрі қауіпті", "B": "Тек зиянды", "C": "Мағынасыз", "D": "Тоқтатылған" }, "correctAnswer": "A", "explanation": "Ол пайдалы мүмкіндіктер мен белгілі бір қауіптер әкелетіні көрсетілген." },
+                { "id": 1515, "text": "Мәтіндегі негізгі ой не туралы?", "options": { "A": "Жасанды интеллектінің рөлі мен жауапкершілік", "B": "Медициналық құралдар", "C": "Қаржы дағдарысы", "D": "Бағдарламалау тілдері" }, "correctAnswer": "A", "explanation": "Жасанды интеллект мүмкіндіктері мен оны қолдану жауапкершілігі баяндалған." }
+                ]
+            }
+        ];
+
+        let currentMaterial = null;
+        let currentMaterialId = null;
+        let startTime;
+
+        // 3. Мәтіндер тізімін экранға шығару
+        function loadMaterials() {
+            const list = document.getElementById('materialsList');
+            list.innerHTML = '';
+            
+            if (LOCAL_MATERIALS.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted);">Мәтіндер әлі жоқ.</p>';
+                return;
+            }
+
+            LOCAL_MATERIALS.forEach(mat => {
+                const card = document.createElement('div');
+                card.className = 'module-card';
+                card.innerHTML = `
+                    <div class="module-card-header">
+                        <h3 class="module-title">${mat.title}</h3>
+                        <span class="module-badge">${mat.level}</span>
+                    </div>
+                    <p class="module-description">Сөздер саны: <strong>${mat.word_count}</strong></p>
+                    <button class="btn btn-primary" onclick="startTest(${mat.id})">Бастау</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function startTest(id) {
+            startTime = new Date();
+            currentMaterial = LOCAL_MATERIALS.find(m => m.id === id);
+            if (!currentMaterial) return;
+
+            document.getElementById('simTitle').textContent = currentMaterial.title;
+            document.getElementById('simText').innerHTML = `<p>${currentMaterial.content}</p>`;
+
+            const qContainer = document.getElementById('questionsContainer');
+            qContainer.innerHTML = '';
+            document.getElementById('resultBanner').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'block';
+
+            currentMaterial.questions.forEach((q, index) => {
+                const block = document.createElement('div');
+                block.className = 'question-block';
+                block.id = `question-block-${q.id}`;
+                
+                let optionsHtml = '';
+                for (const [key, val] of Object.entries(q.options)) {
+                    optionsHtml += `
+                        <label class="option-label" id="label-${q.id}-${key}">
+                            <input type="radio" name="q_${q.id}" value="${key}" required>
+                            <span><strong>${key})</strong> ${val}</span>
+                        </label>
+                    `;
+                }
+
+                block.innerHTML = `
+                    <div class="question-text">${index + 1}. ${q.text}</div>
+                    ${optionsHtml}
+                    <div class="explanation-box" id="exp-${q.id}"></div>
+                `;
+                qContainer.appendChild(block);
+            });
+
+            document.getElementById('materialsScreen').style.display = 'none';
+            document.getElementById('simulatorScreen').style.display = 'flex';
+        }
+
+        function closeSimulator() {
+            document.getElementById('simulatorScreen').style.display = 'none';
+            document.getElementById('materialsScreen').style.display = 'block';
+            document.getElementById('translationTooltip').style.display = 'none';
+            currentMaterial = null;
+        }
+
+        function submitAnswers(e) {   
+            e.preventDefault();
+            
+            if (!currentMaterial) return;
+
+            const form = document.getElementById('questionsForm');
+            const formData = new FormData(form);
+            const userAnswers = {};
+
+            for (const [key, value] of formData.entries()) {
+                const questionId = parseInt(key.split('_')[1]);
+                userAnswers[questionId] = value;
+            }
+
+            if (Object.keys(userAnswers).length < currentMaterial.questions.length) {
+                alert('Барлық сұрақтарға жауап беріңіз!');
+                return;
+            }
+
+            let score = 0;
+
+            currentMaterial.questions.forEach(q => {
+                const userAnswer = userAnswers[q.id];
+                const isCorrect = (userAnswer === q.correctAnswer);
+                
+                if (isCorrect) score++;
+
+                const radios = document.getElementsByName(`q_${q.id}`);
+                radios.forEach(r => r.disabled = true);
+
+                const userLabel = document.getElementById(`label-${q.id}-${userAnswer}`);
+                const correctLabel = document.getElementById(`label-${q.id}-${q.correctAnswer}`);
+
+                if (isCorrect) {
+                    if (userLabel) userLabel.classList.add('correct');
+                } else {
+                    if (userLabel) userLabel.classList.add('wrong');
+                    if (correctLabel) correctLabel.classList.add('correct');
+                }
+
+                const expBox = document.getElementById(`exp-${q.id}`);
+                expBox.innerHTML = `<strong>Разбор:</strong> ${q.explanation}`;
+                expBox.style.display = 'block';
+            });
+
+            const banner = document.getElementById('resultBanner');
+            banner.textContent = `Нәтиже: ${score} / ${currentMaterial.questions.length} дұрыс`;
+            banner.style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'none';
+            banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const endTime = new Date();
+            const durationMinutes = Math.max(1, Math.round((endTime - startTime) / 60000));
+            saveActivityMinutes(durationMinutes);
+            saveModuleResult('reading', score, currentMaterial.questions.length);
+        }
+
+        const textPane = document.getElementById('simText');
+        const tooltip = document.getElementById('translationTooltip');
+
+        document.getElementById('questionsForm').addEventListener('submit', submitAnswers);
+        
+        window.onload = () => {
+            fetchUserProfile();
+            loadMaterials();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="kk" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сөздік қоры — Q-prep</title>
+    <link rel="icon" type="image/jpeg" href="assets/images/icon.png">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* Интервалды қайталау баннері */
+        .spaced-repetition-banner {
+            background: linear-gradient(135deg, var(--primary), #0f766e);
+            border-radius: 16px;
+            padding: 32px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(6, 78, 59, 0.2);
+            margin-bottom: 32px;
+        }
+        .sr-info h2 { margin-bottom: 12px; font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        .sr-info p { font-size: 15px; opacity: 0.9; max-width: 600px; line-height: 1.5; margin-bottom: 16px; }
+        .sr-stats { font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 8px; display: inline-block; }
+        .start-review-btn {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .start-review-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+
+        /* Деңгейлер бойынша фильтр */
+        .level-tabs { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
+        .level-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        .level-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Сөздер карточкалары */
+        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .vocab-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: transform 0.2s;
+        }
+        .vocab-card:hover { transform: translateY(-3px); }
+        .vc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .vc-word { font-size: 22px; font-weight: 800; color: var(--primary); margin: 0; }
+        .vc-ipa { font-size: 14px; color: #8b5cf6; font-family: monospace; background: rgba(139, 92, 246, 0.1); padding: 2px 6px; border-radius: 4px; }
+        .vc-level { font-size: 12px; font-weight: 700; background: var(--surface-secondary); padding: 4px 8px; border-radius: 6px; color: var(--text-muted); }
+        .vc-body p { margin: 8px 0; font-size: 14px; line-height: 1.4; color: var(--text-main); }
+        .vc-example { font-style: italic; color: var(--text-muted); background: var(--surface-secondary); padding: 10px; border-radius: 8px; margin-top: 12px; font-size: 13px; border-left: 3px solid var(--primary); }
+        
+        .add-btn {
+            width: 100%; margin-top: 16px; background: rgba(6, 78, 59, 0.1); color: var(--primary);
+            border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .add-btn:hover { background: var(--primary); color: white; }
+        .added-label { width: 100%; margin-top: 16px; text-align: center; color: #10b981; font-weight: 600; font-size: 14px; padding: 10px 0; }
+
+        /* Қайталау Модалды терезесі (Flashcards) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }       
+         .modal-overlay.active { display: flex; opacity: 1; pointer-events: auto; }
+        .flashcard-container { width: 100%; max-width: 500px; background: var(--surface); border-radius: 24px; padding: 40px; text-align: center; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .close-modal { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
+        .fc-word { font-size: 36px; color: var(--primary); font-weight: 800; margin-bottom: 24px; }
+        .fc-back { display: none; margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 20px; text-align: left; }
+        .fc-btn { padding: 16px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; width: 48%; font-size: 16px; color: white; }
+        .fc-actions { display: none; justify-content: space-between; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-logo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px 10px 16px; text-align: center; width: 100%; box-sizing: border-box; height: auto; min-height: 120px; border-bottom: 1px solid var(--border);">
+            <img src="assets/images/icon.png" alt="Q-prep" style="width: 56px; height: 64px; object-fit: contain; flex-shrink: 0;">
+            <span style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-muted); line-height: 1.3;">
+                ҚАЗТЕСТ-КЕ ДАЙЫНДАЙТЫН ИНТЕРАКТИВТІ ПЛАТФОРМА
+            </span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a href="index.html">Басты бет</a></li>
+            <li class="sidebar-item"><a href="reading.html">Оқылым</a></li>
+            <li class="sidebar-item"><a href="listening.html">Тыңдалым</a></li>
+            <li class="sidebar-item"><a href="writing.html">Жазылым</a></li>
+            <li class="sidebar-item"><a href="speaking.html">Aйтылым</a></li>
+            <li class="sidebar-item"><a href="mock.html">Кешенді тестілеу</a></li>
+            <li class="sidebar-item active"><a href="vocabulary.html">Сөздік қоры</a></li>
+        </ul>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="header">
+            <button class="theme-toggle-btn" id="themeToggle"><svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.22" x2="5.64" y2="17.84"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></button>
+            <div class="user-profile" id="userProfileBtn" style="position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <div class="avatar" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; overflow: hidden;">
+                    <span id="avatar-letter">А</span>
+                    <img id="header-avatar-img" src="" alt="" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                </div>
+                <span id="user-display-name" style="font-weight: 500;">Пайдаланушы</span>
+                
+                <div id="profileDropdown" class="dropdown-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px; z-index: 100;">
+                    <ul style="list-style: none; padding: 10px 0; margin: 0;">
+                        <li>
+                            <a href="profile.html" style="display: block; padding: 10px 20px; color: var(--text-main); text-decoration: none; transition: 0.2s;">👤 Жеке кабинет</a>
+                        </li>
+                        <hr style="border-top: 1px solid var(--border); margin: 5px 0;">
+                        <li>
+                            <a href="#" onclick="logout()" style="display: block; padding: 10px 20px; color: #dc3545; text-decoration: none; transition: 0.2s;">🚪 Шығу</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-container">
+            
+            <div class="spaced-repetition-banner">
+                <div class="sr-info">
+                    <h2>🧠 Интервалды қайталау (Spaced Repetition)</h2>
+                    <p>Бұл жүйе сіздің жадыңызды қадағалайды. Жақсы жатталған сөздер сирек, ал қиындық тудырған сөздер жиі көрсетіледі.</p>
+                    <div class="sr-stats">Сіздің жеке сөздігіңізде: <span id="userDictCount">0</span> сөз</div>
+                    <div id="nextReviewTimer" style="margin-top: 12px; font-size: 15px; font-weight: 700; color: #fde047; display: none;">
+                        ⏳ Келесі қайталау: <span id="timerText">...</span>
+                    </div>
+                </div>
+                <button class="start-review-btn" onclick="startReviewSession()">Қайталауды бастау 🚀</button>
+            </div>
+
+            <div class="level-tabs" id="levelTabs">
+                <button class="level-btn active" onclick="filterLevel('Барлығы', event)">Барлық деңгейлер</button>
+                <button class="level-btn" onclick="filterLevel('A1', event)">A1 (Қарапайым)</button>
+                <button class="level-btn" onclick="filterLevel('A2', event)">A2 (Базалық)</button>
+                <button class="level-btn" onclick="filterLevel('B1', event)">B1 (Орташа)</button>
+                <button class="level-btn" onclick="filterLevel('B2', event)">B2 (Жоғары орта)</button>
+                <button class="level-btn" onclick="filterLevel('C1', event)">C1 (Кәсіби)</button>
+            </div>
+
+            <div class="vocab-grid" id="vocabGrid">
+                </div>
+
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="reviewModal">
+        <div class="flashcard-container">
+            <button class="close-modal" onclick="closeReviewSession()">✖</button>
+            
+            <div id="fcEmptyState" style="display: none; padding: 20px 0;"></div>
+
+            <div id="fcMainArea">
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;" id="fcCounter">Сөз: 1 / 10</p>
+                
+                <div id="fcContent" style="cursor: pointer;" onclick="flipFlashcard()">
+                    <div class="fc-word" id="fcWord">Сөз</div>
+                    <p id="fcHint" style="color: var(--text-muted); font-style: italic;">Аудармасын көру үшін басыңыз 👆</p>
+                    
+                    <div class="fc-back" id="fcBack">
+                        <p style="margin-bottom: 8px;"><strong>Транскрипция:</strong> <span id="fcIpa" style="color: #8b5cf6; font-family: monospace;"></span></p>
+                        <p style="margin-bottom: 8px;"><strong>Мағынасы:</strong> <span id="fcDef"></span></p>
+                        <p style="margin-bottom: 8px;"><strong>Орысша:</strong> <span id="fcRu"></span></p>
+                    </div>
+                </div>
+
+                <div class="fc-actions" id="fcActions">
+                    <button class="fc-btn" style="background: #ef4444; line-height: 1.4;" onclick="submitCard(false)">
+                        ❌ Ұмыттым<br><span style="font-size: 12px; font-weight: 500; opacity: 0.9;">(5 минуттан соң)</span>
+                    </button>
+                    <button class="fc-btn" style="background: #10b981; line-height: 1.4;" onclick="submitCard(true)">
+                        ✅ Білемін<br><span style="font-size: 12px; font-weight: 500; opacity: 0.9;">(1 күннен соң)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/app.js"></script>
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/v1/dictionary";
+        const token = localStorage.getItem('access_token');
+
+        const GLOBAL_VOCABULARY = [
+        { "id": 1, "level": "A1", "word": "Адам", "ipa": "[ɑdɑm]", "ru": "Человек", "def": "Ақыл-ойы бар тіршілік иесі.", "example": "Көшеде көп адам жүр." },
+        { "id": 2, "level": "A1", "word": "Уақыт", "ipa": "[wɑqət]", "ru": "Время", "def": "Оқиғалардың өту мерзімі.", "example": "Менің бос уақытым жоқ." },
+        { "id": 3, "level": "A1", "word": "Күн", "ipa": "[kʉn]", "ru": "День / Солнце", "def": "Тәуліктің жарық мезгілі немесе аспан денесі.", "example": "Бүгін күн өте ыстық." },
+        { "id": 4, "level": "A1", "word": "Су", "ipa": "[suw]", "ru": "Вода", "def": "Мөлдір, түссіз сұйықтық.", "example": "Таңертең бір стақан су ішу пайдалы." },
+        { "id": 5, "level": "A1", "word": "Бала", "ipa": "[bɑlɑ]", "ru": "Ребенок", "def": "Жасы кішкентай адам.", "example": "Бала аулада ойнап жүр." },
+        { "id": 6, "level": "A1", "word": "Мектеп", "ipa": "[mektep]", "ru": "Школа", "def": "Білім беретін оқу орны.", "example": "Оқушылар мектепке барды." },
+        { "id": 7, "level": "A1", "word": "Жұмыс", "ipa": "[ʒuməs]", "ru": "Работа", "def": "Адамның еңбек ететін орны немесе ісі.", "example": "Менің жұмысым өзіме ұнайды." },
+        { "id": 8, "level": "A1", "word": "Үй", "ipa": "[ʉj]", "ru": "Дом", "def": "Адамдар тұратын ғимарат.", "example": "Біздің үй қаланың орталығында орналасқан." },
+        { "id": 9, "level": "A1", "word": "Нан", "ipa": "[nɑn]", "ru": "Хлеб", "def": "Ұннан пісірілетін тағам.", "example": "Дүкеннен жаңа піскен нан алдым." },
+        { "id": 10, "level": "A1", "word": "Қала", "ipa": "[qɑlɑ]", "ru": "Город", "def": "Тұрғындары көп үлкен елді мекен.", "example": "Алматы өте әдемі қала." },
+        { "id": 11, "level": "A2", "word": "Денсаулық", "ipa": "[densɑwləq]", "ru": "Здоровье", "def": "Адам ағзасының қалыпты күйі.", "example": "Спортпен айналысу денсаулыққа пайдалы." },
+        { "id": 12, "level": "A2", "word": "Саяхат", "ipa": "[sɑjɑxɑt]", "ru": "Путешествие", "def": "Басқа жерлерге, елдерге бару.", "example": "Жазда біз отбасымызбен саяхатқа шығамыз." },
+        { "id": 13, "level": "A2", "word": "Мейрам", "ipa": "[mejrɑm]", "ru": "Праздник", "def": "Қуанышты, салтанатты күн.", "example": "Наурыз қазақ халқының ұлттық мейрамы саналады." },
+        { "id": 14, "level": "A2", "word": "Тамақ", "ipa": "[tɑmɑq]", "ru": "Еда / Пища", "def": "Адам жеуге жарамды азық.", "example": "Анашым дәмді тамақ пісірді." },
+        { "id": 15, "level": "A2", "word": "Достық", "ipa": "[dostəq]", "ru": "Дружба", "def": "Адамдар арасындағы жақын қарым қатынас.", "example": "Адал достық өмірде өте қажет." },
+        { "id": 16, "level": "A2", "word": "Киім", "ipa": "[kijim]", "ru": "Одежда", "def": "Адамның денесіне киетін заттары.", "example": "Қыста жылы киім кию керек." },
+        { "id": 17, "level": "A2", "word": "Жол", "ipa": "[ʒol]", "ru": "Дорога / Путь", "def": "Жүруге арналған жер немесе бағыт.", "example": "Ауылға апаратын жол тегіс емес." },
+        { "id": 18, "level": "A2", "word": "Сұрақ", "ipa": "[surɑq]", "ru": "Вопрос", "def": "Бір нәрсені білу үшін қойылатын сөз.", "example": "Мұғалім оқушыға қиын сұрақ қойды." },
+        { "id": 19, "level": "A2", "word": "Жауап", "ipa": "[ʒɑwɑp]", "ru": "Ответ", "def": "Сұраққа қайтарылатын сөз.", "example": "Ол барлық сұраққа дұрыс жауап берді." },
+        { "id": 20, "level": "A2", "word": "Ойын", "ipa": "[ojən]", "ru": "Игра", "def": "Көңіл көтеру немесе жарысу үшін жасалатын әрекет.", "example": "Балалар аулада қызықты ойын ойнады." },
+        { "id": 21, "level": "B1", "word": "Мақсат", "ipa": "[mɑqsɑt]", "ru": "Цель", "def": "Адамның жеткісі келетін нәтижесі.", "example": "Менің басты мақсатым жақсы маман болу." },
+        { "id": 22, "level": "B1", "word": "Тәжірибе", "ipa": "[tæʒiribe]", "ru": "Опыт", "def": "Іс жүзінде жинақталған білім мен дағды.", "example": "Бұл жұмыста үлкен тәжірибе керек." },
+        { "id": 23, "level": "B1", "word": "Қоғам", "ipa": "[qoɣɑm]", "ru": "Общество", "def": "Белгілі бір ортада өмір сүретін адамдар тобы.", "example": "Біз қоғамның толыққанды мүшесіміз." },
+        { "id": 24, "level": "B1", "word": "Мүмкіндік", "ipa": "[mʉmkindik]", "ru": "Возможность", "def": "Бір істі жүзеге асыруға қолайлы жағдай.", "example": "Әр адамға білім алуға тең мүмкіндік беріледі." },
+        { "id": 25, "level": "B1", "word": "Даму", "ipa": "[dɑmuw]", "ru": "Развитие", "def": "Алға басу, өсу процесі.", "example": "Еліміздің экономикалық дамуы байқалады." },
+        { "id": 26, "level": "B1", "word": "Келісім", "ipa": "[kelisim]", "ru": "Соглашение", "def": "Екі немесе одан да көп тараптың ортақ шешімі.", "example": "Екі мемлекет арасында маңызды келісім жасалды." },
+        { "id": 27, "level": "B1", "word": "Болашақ", "ipa": "[bolɑʃɑq]", "ru": "Будущее", "def": "Алдағы уақыт, ертеңгі күн.", "example": "Жастар біздің жарқын болашағымыз." },
+        { "id": 28, "level": "B1", "word": "Құрмет", "ipa": "[qurmet]", "ru": "Уважение", "def": "Адамды сыйлау, қадірлеу сезімі.", "example": "Үлкенге құрмет көрсету біздің міндетіміз." },
+        { "id": 29, "level": "B1", "word": "Себеп", "ipa": "[sebep]", "ru": "Причина", "def": "Бір нәрсенің болуына түрткі болған жағдай.", "example": "Жұмысқа кешігуімнің дәлелді себебі бар." },
+        { "id": 30, "level": "B1", "word": "Сапа", "ipa": "[sɑpɑ]", "ru": "Качество", "def": "Заттың немесе қызметтің жақсылық деңгейі.", "example": "Бұл өнімнің сапасы өте жоғары." },
+        { "id": 31, "level": "B2", "word": "Жауапкершілік", "ipa": "[ʒɑwɑpkerʃilik]", "ru": "Ответственность", "def": "Өз ісіне, міндетіне жауап бере білу қасиеті.", "example": "Әрбір маман өз ісіне жауапкершілік танытуы қажет." },
+        { "id": 32, "level": "B2", "word": "Қауіпсіздік", "ipa": "[qɑwipsizdik]", "ru": "Безопасность", "def": "Қауіп қатердің болмауы, қорғалғандық күйі.", "example": "Өндірісте жұмысшылардың қауіпсіздігі басты орында тұрады." },
+        { "id": 33, "level": "B2", "word": "Жетістік", "ipa": "[ʒetistik]", "ru": "Достижение / Успех", "def": "Еңбекпен келген табыс, жеңіс.", "example": "Оның спорттағы жетістігі бәрімізді қуантты." },
+        { "id": 34, "level": "B2", "word": "Құндылық", "ipa": "[qundələq]", "ru": "Ценность", "def": "Қоғам немесе адам үшін маңызы бар қасиет.", "example": "Рухани құндылықтар ешқашан өз маңызын жоғалтпайды." },
+        { "id": 35, "level": "B2", "word": "Ықпал", "ipa": "[əqpɑl]", "ru": "Влияние", "def": "Бір нәрсенің екіншісіне тигізетін әсері.", "example": "Ауа райының өзгеруі адам денсаулығына ықпал етеді." },
+        { "id": 36, "level": "B2", "word": "Өзгеріс", "ipa": "[øzgeris]", "ru": "Изменение", "def": "Бір қалыптан екінші қалыпқа ауысу процесі.", "example": "Соңғы жылдары қаламызда көптеген оң өзгеріс болды." },
+        { "id": 37, "level": "B2", "word": "Жүйе", "ipa": "[ʒʉje]", "ru": "Система", "def": "Бір бірімен байланысты элементтердің жиынтығы.", "example": "Жаңа білім беру жүйесі мектептерге енгізілді." },
+        { "id": 38, "level": "B2", "word": "Тұтынушы", "ipa": "[tutunuwʃə]", "ru": "Потребитель", "def": "Тауарды немесе қызметті пайдаланатын адам.", "example": "Компания әрқашан тұтынушы талабын ескереді." },
+        { "id": 39, "level": "B2", "word": "Кедергі", "ipa": "[kedergi]", "ru": "Препятствие", "def": "Істің жүзеге асуына бөгет болатын жағдай.", "example": "Мақсатқа жету жолында түрлі кедергі кездесуі мүмкін." },
+        { "id": 40, "level": "B2", "word": "Бағыт", "ipa": "[bɑɣət]", "ru": "Направление", "def": "Қозғалыстың немесе дамудың бет алған жағы.", "example": "Зерттеу жұмысы жаңа бағыт бойынша жалғасуда." },
+        { "id": 41, "level": "C1", "word": "Жаһандану", "ipa": "[ʒɑhɑndɑnuw]", "ru": "Глобализация", "def": "Бүкіләлемдік экономикалық, мәдени бірігу процесі.", "example": "Жаһандану заманында ұлттық мәдениетті сақтау маңызды." },
+        { "id": 42, "level": "C1", "word": "Тұжырымдама", "ipa": "[tuʒərəmdɑmɑ]", "ru": "Концепция", "def": "Құбылыстарды түсіндіретін негізгі идеялар жүйесі.", "example": "Үкімет жаңа экономикалық тұжырымдама қабылдады." },
+        { "id": 43, "level": "C1", "word": "Құзыреттілік", "ipa": "[quzərettilik]", "ru": "Компетентность", "def": "Белгілі бір саладағы терең білім мен кәсібилік.", "example": "Қызметкердің кәсіби құзыреттілігі жоғары бағаланды." },
+        { "id": 44, "level": "C1", "word": "Пайымдау", "ipa": "[pɑjəmdɑw]", "ru": "Рассуждение / Суждение", "def": "Мәселені талдап, қорытынды жасау процесі.", "example": "Сарапшылардың бұл мәселе жөніндегі пайымдауы әртүрлі." },
+        { "id": 45, "level": "C1", "word": "Заңдылық", "ipa": "[zɑŋdələq]", "ru": "Закономерность", "def": "Құбылыстар арасындағы тұрақты, қайталанатын байланыс.", "example": "Табиғаттағы әрбір құбылыстың өзіндік заңдылығы бар." },
+        { "id": 46, "level": "C1", "word": "Кешенді", "ipa": "[keʃendi]", "ru": "Комплексный", "def": "Бірнеше бөліктен немесе бағыттан тұратын тұтастық.", "example": "Экологиялық мәселелерді шешу үшін кешенді шаралар қажет." },
+        { "id": 47, "level": "C1", "word": "Басымдық", "ipa": "[bɑsəmdəq]", "ru": "Приоритет", "def": "Басқалардан артықшылығы, бірінші кезектегі маңыздылығы.", "example": "Денсаулық сақтау саласын дамыту мемлекеттік басымдық болып саналады." },
+        { "id": 48, "level": "C1", "word": "Жүйелілік", "ipa": "[ʒʉjelilik]", "ru": "Системность", "def": "Әрекеттің немесе процестің реттілігі, тұрақтылығы.", "example": "Жұмыстағы жүйелілік әрқашан жақсы нәтиже береді." },
+        { "id": 49, "level": "C1", "word": "Сараптама", "ipa": "[sɑrɑptɑmɑ]", "ru": "Экспертиза / Анализ", "def": "Бір нәрсені арнайы зерттеу, талдау жұмысы.", "example": "Зертханада судың құрамына арнайы сараптама жасалды." },
+        { "id": 50, "level": "C1", "word": "Жетілдіру", "ipa": "[ʒetildiruw]", "ru": "Совершенствование", "def": "Сапасын арттыру, бұрынғыдан да жақсарту.", "example": "Мамандар өз біліктілігін үнемі жетілдіріп отыруы тиіс." }
+    ];
+
+        let userDictionary = []; 
+        let reviewQueue = []; 
+        let currentReviewIndex = 0; 
+
+        async function fetchUserDictionary() {
+            try {
+                const res = await fetch(`${API_URL}/list`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const result = await res.json();
+                if (res.ok && result.data) {
+                    userDictionary = result.data.map(item => (item.word || "").toLowerCase().trim());
+                    document.getElementById('userDictCount').innerText = userDictionary.length;
+                    updateReviewStatus(result.data);
+                }
+            } catch (err) {
+                console.error("Сөздік жүктелмеді:", err);
+            }
+            filterLevel('Барлығы');
+        }
+        function updateReviewStatus(wordsList) {
+            const now = new Date();
+            let cardsReady = 0;
+            let nextDate = null;
+
+            wordsList.forEach(w => {
+                if (!w.next_review) return;
+                let revDate = new Date(w.next_review + "Z");
+                
+                if (revDate <= now) {
+                    cardsReady++;
+                } else {
+                    if (!nextDate || revDate < nextDate) {
+                        nextDate = revDate;
+                    }
+                }
+            });
+
+            const btn = document.querySelector('.start-review-btn');
+            const timerDiv = document.getElementById('nextReviewTimer');
+            const timerText = document.getElementById('timerText');
+
+            if (cardsReady > 0) {
+                // Қайталайтын сөздер БАР
+                btn.disabled = false;
+                btn.innerText = `Қайталауды бастау (${cardsReady}) 🚀`;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                timerDiv.style.display = 'none';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+                
+                if (nextDate) {
+                    btn.innerText = "Бәрі қайталанды 🎉";
+                    timerDiv.style.display = 'block';
+                    
+                    // Уақыт айырмашылығын есептеу
+                    const diffMs = nextDate - now;
+                    const diffMins = Math.ceil(diffMs / 60000);
+                    
+                    if (diffMins < 60) {
+                        timerText.innerText = `${diffMins} минуттан соң`;
+                    } else {
+                        const diffHours = Math.floor(diffMins / 60);
+                        const remMins = diffMins % 60;
+                        timerText.innerText = `${diffHours} сағат ${remMins} минуттан соң`;
+                    }
+                } else {
+                    btn.innerText = "Сөздік бос 📚";
+                    timerDiv.style.display = 'none';
+                }
+            }
+        }
+
+        function filterLevel(level, event = null) {
+            if (event && event.target) {
+                document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+            }
+
+            const grid = document.getElementById('vocabGrid');
+            grid.innerHTML = '';
+
+            let filteredWords = GLOBAL_VOCABULARY;
+            
+            if (level === 'Барлығы') {
+                filteredWords = [...GLOBAL_VOCABULARY].sort(() => Math.random() - 0.5);
+            } else {
+                filteredWords = GLOBAL_VOCABULARY.filter(w => w.level === level);
+            }
+
+            if(filteredWords.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-muted); text-align: center;">Бұл деңгейде әзірге сөздер жоқ.</p>';
+                return;
+            }
+
+            filteredWords.forEach(w => {
+                const isAdded = userDictionary.includes(w.word.toLowerCase().trim());
+                
+                const btnHtml = isAdded 
+                    ? `<div class="added-label">✔ Сөздігіңізде бар</div>`
+                    : `<button class="add-btn" onclick="addWordToDb('${w.word}', '${w.def}', '${w.ru}', this)">➕ Сөздікке қосу</button>`;
+
+                grid.innerHTML += `
+                    <div class="vocab-card">
+                        <div class="vc-header">
+                            <h3 class="vc-word">${w.word} <span class="vc-ipa">${w.ipa}</span></h3>
+                            <span class="vc-level">${w.level}</span>
+                        </div>
+                        <div class="vc-body">
+                            <p><strong>🇷🇺 Орысша:</strong> ${w.ru}</p>
+                            <p><strong>💡 Мағынасы:</strong> ${w.def}</p>
+                        </div>
+                        <div class="vc-example">
+                            " ${w.example} "
+                        </div>
+                        ${btnHtml}
+                    </div>
+                `;
+            });
+        }
+
+        async function addWordToDb(word, def, ru, btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerText = "⏳ Қосылуда...";
+
+            try {
+                const res = await fetch(`${API_URL}/add-word`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ word: word, definition: def, russian: ru, english: "" })
+                });
+
+                if (res.ok) {
+                    btnElement.outerHTML = `<div class="added-label">✔ Сөздікке қосылды!</div>`;
+                    userDictionary.push(word.toLowerCase().trim());
+                    document.getElementById('userDictCount').innerText = userDictionary.length;
+                } else {
+                    btnElement.disabled = false;
+                    btnElement.innerText = "➕ Сөздікке қосу";
+                }
+            } catch (err) {
+                alert("Қате орын алды");
+                btnElement.disabled = false;
+                btnElement.innerText = "➕ Сөздікке қосу";
+            }
+        }
+
+        function showModalMessage(icon, title, text) {
+            document.getElementById('fcMainArea').style.display = 'none';
+            const emptyState = document.getElementById('fcEmptyState');
+            
+            emptyState.innerHTML = `
+                <div style="font-size: 64px; margin-bottom: 16px;">${icon}</div>
+                <h3 style="color: var(--primary); margin-bottom: 12px; font-size: 24px;">${title}</h3>
+                <p style="color: var(--text-muted); font-size: 16px; line-height: 1.5; margin-bottom: 24px;">${text}</p>
+                <button class="add-btn" style="width: auto; padding: 12px 32px;" onclick="closeReviewSession()">Жабу</button>
+            `;
+            emptyState.style.display = 'block'; 
+        }
+
+        async function startReviewSession() {
+            const btn = document.querySelector('.start-review-btn');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Күте тұрыңыз...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/review-cards`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    const modal = document.getElementById('reviewModal');
+                    modal.classList.add('active'); // Терезені міндетті түрде ашамыз
+
+                    if (Array.isArray(result.data) && result.data.length > 0) {
+                        reviewQueue = result.data;
+                        currentReviewIndex = 0;
+                        
+                        document.getElementById('fcEmptyState').style.display = 'none';
+                        document.getElementById('fcMainArea').style.display = 'block';
+                        renderFlashcard();
+                    } else {
+                        showModalMessage(
+                            "🎉", 
+                            "Тамаша!", 
+                            "Қазіргі уақытта қайталайтын сөздер жоқ.<br>Сөздікке жаңа сөздер қосыңыз немесе сәл күте тұрыңыз."
+                        );
+                    }
+                } else {
+                    alert("Сервер қателігі: " + (result.message || "Белгісіз қате"));
+                }
+            } catch (err) {
+                console.error("Тренажер қатесі:", err);
+                alert("Тренажерді ашу мүмкін болмады.");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function renderFlashcard() {
+            if (currentReviewIndex >= reviewQueue.length) {
+                showModalMessage(
+                    "🏆", 
+                    "Жарайсыз!", 
+                    "Сіз бүгінгі сессияны толық аяқтадыңыз!<br>Келесі қайталау уақыты келгенде осында оралыңыз."
+                );
+                return;
+            }
+
+            const card = reviewQueue[currentReviewIndex];
+            
+            document.getElementById('fcCounter').innerText = `Сөз: ${currentReviewIndex + 1} / ${reviewQueue.length}`;
+            
+            const safeWord = card.word ? card.word.toLowerCase().trim() : "";
+            const globalMatch = GLOBAL_VOCABULARY.find(w => w.word.toLowerCase().trim() === safeWord);
+            const ipa = globalMatch ? globalMatch.ipa : "";
+
+            document.getElementById('fcWord').innerText = card.word || "Белгісіз сөз";
+            document.getElementById('fcIpa').innerText = ipa;
+            document.getElementById('fcDef').innerText = card.definition || "Анықтамасы жоқ";
+            document.getElementById('fcRu').innerText = card.russian || "Аудармасы жоқ";
+
+            document.getElementById('fcBack').style.display = 'none';
+            document.getElementById('fcActions').style.display = 'none';
+            document.getElementById('fcHint').style.display = 'block';
+        }
+
+        function flipFlashcard() {
+            document.getElementById('fcBack').style.display = 'block';
+            document.getElementById('fcActions').style.display = 'flex';
+            document.getElementById('fcHint').style.display = 'none';
+        }
+
+        async function submitCard(remembered) {
+            const card = reviewQueue[currentReviewIndex];
+            
+            try {
+                await fetch(`${API_URL}/assess-review`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ word_id: card.id, remembered: remembered })
+                });
+            } catch (err) {
+                console.error("Жауапты сақтау қатесі:", err);
+            }
+
+            currentReviewIndex++;
+            renderFlashcard();
+        }
+
+        function closeReviewSession() {
+            const modal = document.getElementById('reviewModal');
+            modal.classList.remove('active');
+            fetchUserDictionary();
+        }
+
+        window.onload = () => {
+            fetchUserDictionary();
+        };
+    </script>
+</body>
+</html>     

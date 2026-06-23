@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="kk" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="assets/images/icon.png">
+    <title>Тыңдалым | Q-prep</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .simulator-container {
+            display: none; 
+            gap: 24px;
+            height: calc(100vh - 180px);
+        }
+        .pane {
+            flex: 1;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        
+        .audio-player-wrapper {
+            background: var(--surface-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        audio {
+            width: 100%;
+            margin-top: 12px;
+            accent-color: var(--primary);
+        }
+        .audio-meta {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .question-block {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .question-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .option-label:hover {
+            background-color: var(--surface-secondary);
+        }
+        input[type="radio"] { accent-color: var(--primary); transform: scale(1.2); }
+        
+        .option-label.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .option-label.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        [data-theme="dark"] .option-label.correct { background-color: #0e4429; border-color: #28a745; color: #d4edda; }
+        [data-theme="dark"] .option-label.wrong { background-color: #4a1920; border-color: #dc3545; color: #f8d7da; }
+        
+        .explanation-box {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px 10px 16px; text-align: center; width: 100%; box-sizing: border-box; height: auto; min-height: 120px; border-bottom: 1px solid var(--border);">
+            <img src="assets/images/icon.png" alt="Q-prep" style="width: 56px; height: 64px; object-fit: contain; flex-shrink: 0;">
+            <span style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-muted); line-height: 1.3;">
+                ҚАЗТЕСТ-КЕ ДАЙЫНДАЙТЫН ИНТЕРАКТИВТІ ПЛАТФОРМА
+            </span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a href="index.html"><span>Басты бет</span></a></li>
+            <li class="sidebar-item"><a href="reading.html"><span>Оқылым</span></a></li>
+            <li class="sidebar-item active"><a href="listening.html"><span>Тыңдалым</span></a></li>
+            <li class="sidebar-item"><a href="writing.html"><span>Жазылым</span></a></li>
+            <li class="sidebar-item"><a href="speaking.html"><span>Aйтылым</span></a></li>
+            <li class="sidebar-item"><a href="mock.html"><span>Кешенді тестілеу</span></a></li>
+            <li class="sidebar-item"><a href="vocabulary.html">Сөздік қоры</a></li>
+        </ul>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="header">
+            <button class="theme-toggle-btn" id="themeToggle"><svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.22" x2="5.64" y2="17.84"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></button>
+            <div class="user-profile" id="userProfileBtn" style="position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <div class="avatar" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; overflow: hidden;">
+                    <span id="avatar-letter">А</span>
+                    <img id="header-avatar-img" src="" alt="" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                </div>
+                <span id="user-display-name" style="font-weight: 500;">Пайдаланушы</span>
+                
+                <div id="profileDropdown" class="dropdown-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px; z-index: 100;">
+                    <ul style="list-style: none; padding: 10px 0; margin: 0;">
+                        <li>
+                            <a href="profile.html" style="display: block; padding: 10px 20px; color: var(--text-main); text-decoration: none; transition: 0.2s;">👤 Жеке кабинет</a>
+                        </li>
+                        <hr style="border-top: 1px solid var(--border); margin: 5px 0;">
+                        <li>
+                            <a href="#" onclick="logout()" style="display: block; padding: 10px 20px; color: #dc3545; text-decoration: none; transition: 0.2s;">🚪 Шығу</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-container">
+            
+            <div id="materialsScreen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="color: var(--primary);">Қолжетімді аудиожазбалар</h2>
+                </div>
+                <div class="modules-grid" id="materialsList">
+                    </div>
+            </div>
+
+            <div id="simulatorScreen" class="simulator-container">
+                <div class="pane">
+                    <button class="btn btn-secondary" style="margin-bottom: 20px;" onclick="closeSimulator()">← Артқа қайту</button>
+                    <h3 id="simTitle" style="color: var(--primary); margin-bottom: 16px;"></h3>
+                    
+                    <div class="audio-player-wrapper">
+                        <div style="font-weight: 500; margin-bottom: 8px;">Аудионы қосу:</div>
+                        <audio id="simAudio" controls controlsList="nodownload"></audio>
+                        <div class="audio-meta" id="simDuration">Ұзақтығы: --:--</div>
+                    </div>
+                    
+                    <div id="simDescription" style="line-height: 1.6; color: var(--text-main);">
+                        </div>
+                </div>
+
+                <div class="pane" style="position: relative;">
+                    <h3 style="margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">Сұрақтар</h3>
+                    
+                    <div id="resultBanner" style="display: none; background: var(--primary); color: white; padding: 16px; border-radius: 8px; margin-bottom: 24px; text-align: center; font-size: 18px; font-weight: bold;"></div>
+
+                    <form id="questionsForm">
+                        <div id="questionsContainer"></div>
+                        
+                        <button type="button" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px; margin-top: 20px;" id="submitBtn">Жауаптарды жіберу</button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+    <script src="assets/js/app.js"></script>
+    
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/v1";
+        let currentMaterialId = null;
+        let startTime;
+        const token = localStorage.getItem('access_token');
+        if (!token) window.location.href = 'login.html';
+
+        function applyHeaderProfile() {
+            const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+            const nameEl = document.getElementById('user-display-name');
+            const letterEl = document.getElementById('avatar-letter');
+            const imgEl = document.getElementById('header-avatar-img');
+            if (nameEl && profile.firstName) nameEl.innerText = profile.firstName;
+            if (letterEl && profile.firstName) letterEl.innerText = profile.firstName.charAt(0).toUpperCase();
+            if (imgEl) {
+                if (profile.avatar) {
+                    imgEl.src = profile.avatar;
+                    imgEl.style.display = 'block';
+                    if (letterEl) letterEl.style.display = 'none';
+                } else {
+                    imgEl.style.display = 'none';
+                    if (letterEl) letterEl.style.display = '';
+                }
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const profile = JSON.parse(localStorage.getItem('user_profile')) || {};
+                    const apiName = result.data.full_name;
+                    if (!profile.firstName && apiName) {
+                        profile.firstName = apiName.split(' ')[0];
+                        localStorage.setItem('user_profile', JSON.stringify(profile));
+                    }
+                    document.getElementById('welcome-name') && (document.getElementById('welcome-name').innerText = profile.firstName || apiName);
+                    applyHeaderProfile();
+                }
+            } catch (error) {
+                console.error('Профиль қатесі:', error);
+                applyHeaderProfile();
+            }
+        }
+
+        function logout() { 
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        function saveActivityMinutes(minutesSpent) {
+            if (minutesSpent < 1) minutesSpent = 1;
+            const activityLog = JSON.parse(localStorage.getItem('study_activity')) || {};
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            activityLog[dateStr] = (activityLog[dateStr] || 0) + minutesSpent;
+            localStorage.setItem('study_activity', JSON.stringify(activityLog));
+        }
+
+        function saveModuleResult(moduleType, score, maxScore) {
+            const history = JSON.parse(localStorage.getItem('module_history')) || [];
+            const today = new Date();
+            const pad = (n) => n < 10 ? '0' + n : n;
+            const dateStr = `${pad(today.getDate())}.${pad(today.getMonth() + 1)}.${today.getFullYear()} ${pad(today.getHours())}:${pad(today.getMinutes())}`;
+            
+            history.push({
+                type: moduleType,
+                score: score,
+                maxScore: maxScore,
+                date: dateStr
+            });
+            localStorage.setItem('module_history', JSON.stringify(history));
+        }
+
+        const mockMaterials = [
+            {
+                id: 1,
+                title: "Сұхбат: Қазақстандағы IT стартаптар",
+                level: "B2",
+                duration: "02:15",
+                audio_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                description: "Мәтінді мұқият тыңдап, спикерлердің негізгі ойларын анықтаңыз. Жауап бергеннен кейін нәтижені тексере аласыз."
+            },
+            {
+                id: 2,
+                title: "Абай құндылықтары мен заманауи білім",
+                level: "C1",
+                duration: "04:40",
+                audio_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                description: "Аудиожазбаны тыңдап, баяндамашының дәлелдерін талдаңыз."
+            }
+        ];
+
+        const mockQuestions = {
+            1: [
+                {
+                    id: 101,
+                    text: "Спикерлердің айтуынша, отандық стартаптарға не жетіспейді?",
+                    options: {
+                        "A": "Инвестиция көлемі",
+                        "B": "Тәжірибелі менторлар және халықаралық нарыққа шығу",
+                        "C": "Заманауи кеңсе кеңістігі",
+                        "D": "Мемлекеттік гранттар"
+                    },
+                    correct_answer: "B",
+                    explanation: "Спикер өз сөзінде басты мәселе ақшада емес, тәжірибе мен халықаралық деңгейдегі менторлықтың аздығында екенін баса айтты."
+                },
+                {
+                    id: 102,
+                    text: "Жобаны дамыту үшін алғашқы кезеңде қандай модель тиімді деп аталды?",
+                    options: {
+                        "A": "Бутстрэппинг (өз қаражаты есебінен)",
+                        "B": "Бірден үлкен несие алу",
+                        "C": "Краудфандинг жинау",
+                        "D": "Ангельдік инвестициялар"
+                    },
+                    correct_answer: "A",
+                    explanation: "Бастапқы кезеңде гипотезаларды тексеру үшін бутстрэппинг ең қауіпсіз әрі тиімді әдіс ретінде ұсынылды."
+                }
+            ]
+        };
+
+        function loadMaterials() {
+            const list = document.getElementById('materialsList');
+            list.innerHTML = '';
+            
+            mockMaterials.forEach(mat => {
+                const card = document.createElement('div');
+                card.className = 'module-card';
+                card.innerHTML = `
+                    <div class="module-card-header">
+                        <h3 class="module-title">${mat.title}</h3>
+                        <span class="module-badge">${mat.level}</span>
+                    </div>
+                    <p class="module-description">Ұзақтығы: <strong>${mat.duration}</strong></p>
+                    <button class="btn btn-primary" onclick="startTest(${mat.id})">Бастау</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function startTest(id) {
+            startTime = new Date();
+            currentMaterialId = id;
+            const mat = mockMaterials.find(m => m.id === id);
+            const questions = mockQuestions[id] || [];
+            document.getElementById('simTitle').textContent = mat.title;
+            const audioNode = document.getElementById('simAudio');
+            audioNode.src = mat.audio_url;
+            document.getElementById('simDuration').textContent = `Ұзақтығы: ${mat.duration}`;
+            document.getElementById('simDescription').innerHTML = `<p>${mat.description}</p>`;
+            const qContainer = document.getElementById('questionsContainer');
+            qContainer.innerHTML = '';
+            document.getElementById('resultBanner').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'block';
+
+            if (questions.length === 0) {
+                qContainer.innerHTML = '<p style="color:var(--text-muted)">Бұл мәтінге сұрақтар әлі қосылмаған.</p>';
+            }
+
+            questions.forEach((q, index) => {
+                const block = document.createElement('div');
+                block.className = 'question-block';
+                block.id = `question-block-${q.id}`;
+                
+                let optionsHtml = '';
+                for (const [key, val] of Object.entries(q.options)) {
+                    optionsHtml += `
+                        <label class="option-label" id="label-${q.id}-${key}">
+                            <input type="radio" name="q_${q.id}" value="${key}" required>
+                            <span><strong>${key})</strong> ${val}</span>
+                        </label>
+                    `;
+                }
+
+                block.innerHTML = `
+                    <div class="question-text">${index + 1}. ${q.text}</div>
+                    ${optionsHtml}
+                    <div class="explanation-box" id="exp-${q.id}"></div>
+                `;
+                qContainer.appendChild(block);
+            });
+
+            document.getElementById('materialsScreen').style.display = 'none';
+            document.getElementById('simulatorScreen').style.display = 'flex';
+        }
+
+        function closeSimulator() {
+            const audioNode = document.getElementById('simAudio');
+            audioNode.pause();
+            audioNode.src = '';
+
+            document.getElementById('simulatorScreen').style.display = 'none';
+            document.getElementById('materialsScreen').style.display = 'block';
+        }
+
+        function submitAnswers(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            const form = document.getElementById('questionsForm');
+            const formData = new FormData(form);
+            const userAnswers = {};
+            
+            for (let [key, value] of formData.entries()) {
+                const questionId = key.split('_')[1];
+                userAnswers[questionId] = value;
+            }
+
+            const questions = mockQuestions[currentMaterialId] || [];
+            if (Object.keys(userAnswers).length < questions.length) {
+                alert("Барлық сұрақтарға жауап беріңіз!");
+                return;
+            }
+
+            let score = 0;
+            const details = [];
+
+            questions.forEach(q => {
+                const uAns = userAnswers[q.id];
+                const isCorrect = uAns === q.correct_answer;
+                if (isCorrect) score++;
+
+                details.push({
+                    question_id: q.id,
+                    user_answer: uAns,
+                    correct_answer: q.correct_answer,
+                    is_correct: isCorrect,
+                    explanation: q.explanation
+                });
+            });
+
+            const banner = document.getElementById('resultBanner');
+            banner.textContent = `Нәтиже: ${score} / ${questions.length} дұрыс`;
+            banner.style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'none';
+            banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            details.forEach(detail => {
+                const radios = document.getElementsByName(`q_${detail.question_id}`);
+                radios.forEach(r => r.disabled = true);
+
+                const userLabel = document.getElementById(`label-${detail.question_id}-${detail.user_answer}`);
+                const correctLabel = document.getElementById(`label-${detail.question_id}-${detail.correct_answer}`);
+
+                if (detail.is_correct) {
+                    if (userLabel) userLabel.classList.add('correct');
+                } else {
+                    if (userLabel) userLabel.classList.add('wrong');
+                    if (correctLabel) correctLabel.classList.add('correct');
+                }
+
+                const expBox = document.getElementById(`exp-${detail.question_id}`);
+                expBox.innerHTML = `<strong>Разбор:</strong> ${detail.explanation}`;
+                expBox.style.display = 'block';
+            });
+
+            banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const endTime = new Date();
+            const duration = Math.max(1, Math.round((endTime - startTime) / 60000));
+            saveActivityMinutes(duration);
+            saveModuleResult('listening', score, questions.length);
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', submitAnswers);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUserProfile();
+            loadMaterials();
+        });
+    </script>
+</body>
+</html>
