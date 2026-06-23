@@ -4,6 +4,8 @@ import bcrypt
 import httpx
 import json
 import re
+import o
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from typing import Dict, List
 from fastapi import FastAPI, status, Depends, HTTPException
