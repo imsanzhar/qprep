@@ -16,6 +16,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+import google.generativeai as genai
 from database import engine, Base, get_db
 from app.routers import speaking
 from models import User, ReadingMaterial, ListeningMaterial, Question, WritingTask, SpeakingTask, TestResult, UserWord
